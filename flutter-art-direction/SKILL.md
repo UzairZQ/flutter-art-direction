@@ -48,6 +48,8 @@ Before building screens, lock these choices and keep them consistent:
 
 For deeper inspiration, read `references/principle-bank.md` when the brief is visual, emotional, immersive, health/wellness, productivity, finance, education, culture, commerce, social, or travel.
 
+For implementation detail, read `references/flutter-implementation-playbook.md` when creating or modifying actual Flutter widgets, themes, motion, assets, previews, or visual QA.
+
 ### 3. Set the dials
 
 Use these values as design constraints, not decorative labels:
@@ -95,6 +97,8 @@ lib/
         views/
         widgets/
 ```
+
+When translating the Design Bible into code, use `references/flutter-implementation-playbook.md` for concrete Flutter patterns.
 
 ### 5. Use image concepts selectively
 
