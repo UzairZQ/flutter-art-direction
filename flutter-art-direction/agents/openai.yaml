@@ -1,0 +1,4 @@
+interface:
+  display_name: "Flutter Art Direction"
+  short_description: "Authored anti-slop Flutter UI"
+  default_prompt: "Use $flutter-art-direction to design and implement a distinctive Flutter app screen."
