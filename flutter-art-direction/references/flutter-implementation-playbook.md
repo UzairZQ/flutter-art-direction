@@ -257,3 +257,224 @@ Screenshot acceptance:
 - Build custom visuals as reusable pieces.
 - Use reduced-motion paths and `RepaintBoundary`.
 - Verify with screenshots on real mobile proportions.
+
+## Design Tokens in Code
+
+Reference: `references/design-token-architecture.md`
+
+Implement a three-tier token system before any widget code.
+
+### File Structure
+```text
+lib/ui/core/tokens/
+  primitives/           # Raw values: color-primitives.dart, spacing-primitives.dart
+  semantic/             # Context-aware: colors.dart, spacing.dart, typography.dart
+  component/            # Component-scoped: button-tokens.dart, card-tokens.dart
+```
+
+### Code Gen Pipeline
+1. Source: `tokens/source/figma-tokens.json`
+2. Transform: `scripts/generate_tokens.dart` → Dart files
+3. Output: `lib/ui/core/tokens/`
+
+### Usage Rules
+- **NEVER** hardcode raw values in widget code
+- **ALWAYS** use semantic tokens: `AppTokens.semantic.color.surfaceBase`
+- **Use** component tokens for component-specific overrides
+
+### Platform-Adaptive Tokens
+```dart
+static BorderRadius get radiusCard =>
+  Platform.isAndroid ? BorderRadius.circular(16) // M3
+                     : BorderRadius.circular(12); // iOS
+```
+
+## Adaptive Theming in Practice
+
+Reference: `references/adaptive-theming.md`
+
+### Dynamic Color
+```dart
+final colorScheme = ColorScheme.fromSeed(
+  seedColor: brandSeed,
+  dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
+);
+final fallbackScheme = ColorScheme.fromSeed(seedColor: brandSeed);
+```
+
+### Platform-Adaptive Components
+| Component | Android (M3) | iOS (Cupertino) | Neutral |
+| Button | FilledButton | CupertinoButton | Stadium |
+| Nav Bar | NavigationBar | CupertinoTabBar | Adaptive |
+| Dialog | AlertDialog | CupertinoAlertDialog | Custom |
+| Switch | Switch.adaptive | CupertinoSwitch | Switch.adaptive |
+
+### Semantic Color Roles
+Use `Theme.of(context).colorScheme.surfaceContainerHigh` instead of `Colors.grey[100]`.
+
+## Motion System
+
+Reference: `references/motion-with-intent.md`
+
+Every animation must map to one of 5 intent categories: Navigational, Feedback, State Transition, Emotional/Storytelling, Brand.
+
+### Spring Physics Defaults
+| Feeling | Stiffness | Damping | Use Case |
+| Crisp | 300 | 25 | Feedback, button press |
+| Standard | 210 | 20 | Navigational, default |
+| Soft | 150 | 12 | State transitions, sheets |
+| Loose | 100 | 8 | Celebrations, storytelling |
+
+### Reduced Motion Pattern
+```dart
+final disableAnimations = MediaQuery.of(context).disableAnimations;
+final duration = disableAnimations ? Duration.zero : AppMotion.mediumSpring.duration;
+```
+
+### Choreography Rules
+- Max 2 concurrent motions per screen
+- Stagger children: `delay = index * 50ms`
+- Parent completes before children for enters
+- Exits in parallel (fast)
+
+## Spatial/Depth Implementation
+
+Reference: `references/spatial-mobile-design.md`
+
+Use 4 depth layers: Base (0), Surface (1-3), Raised (6-8), Overlay (12-16).
+
+### Glass as Hierarchy
+```dart
+ClipRRect(
+  borderRadius: AppRadii.card,
+  child: BackdropFilter(
+    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+    child: Container(
+      color: Colors.white.withOpacity(0.7),
+      child: content,
+    ),
+  ),
+)
+```
+
+### Parallax on Scroll
+- Hero parallax: max 20px offset via `Transform.translate`
+- Gyroscope tilt: subtle 3D on 2D (opt-in, reduced-motion off)
+
+## Gesture System Implementation
+
+Reference: `references/gesture-first-navigation.md`
+
+### Core Gestures
+| Gesture | Affordance | Fallback |
+| Edge swipe back | System gesture + optional < | Back button |
+| Drag down | Sheet drag handle | Close button |
+| Long press | Haptic + scale | Context menu |
+| Swipe horizontal | Reveal actions | Trailing button |
+
+### Back Gesture (go_router compatible)
+```dart
+PopScope(
+  canPop: false,
+  onPopInvoked: (didPop) => if (!didPop) context.pop(),
+  child: Scaffold(...),
+)
+```
+
+### Sheet Dismiss
+```dart
+DraggableScrollableSheet(
+  initialChildSize: 0.5,
+  minChildSize: 0.25,
+  maxChildSize: 0.9,
+  builder: (context, scrollController) => SheetContent(
+    dragHandle: true,
+    onDragEnd: (details) =>
+      if (details.velocity.pixelsPerSecond.dy > 500) context.pop(),
+  ),
+)
+```
+
+## Emotional Design Integration
+
+Reference: `references/emotional-design-framework.md`
+
+### Norman's 3 Levels → Widget Mapping
+| Level | Design Concern | Flutter Pattern |
+| Visceral | Immediate reaction | Theme, hero imagery, first-frame motion |
+| Behavioral | Flow & usability | Navigation, state design, micro-interactions |
+| Reflective | Meaning & memory | Empty states, milestones, share artifacts |
+
+### Emotional Stance Validation
+Every screen must have intentional choices at all 3 levels. Empty/error states are reflective-level surfaces.
+
+## Accessibility Implementation
+
+Reference: `references/accessibility-gates.md`
+
+### CI-Enforced Gates
+1. Reduced motion: `MediaQuery.disableAnimations` respected
+2. Text scaling: tested at 200%
+3. Semantics: labels on all interactive elements
+4. Contrast: 4.5:1 (AA) minimum
+5. Touch targets: 48×48dp minimum
+
+### Implementation Pattern
+```dart
+Semantics(
+  label: 'Close dialog',
+  hint: 'Double tap to dismiss',
+  child: IconButton(
+    icon: Icon(Icons.close),
+    onPressed: () => Navigator.pop(context),
+  ),
+)
+```
+
+## Golden/Screenshot Testing
+
+Reference: `references/preview-and-screenshot-qa.md`
+
+### Device Matrix
+- Small phone (320px width)
+- Large phone (414px width)
+- Tablet (768px+) if supported
+- Landscape if app rotates
+
+### Scenarios
+- Default, loading, empty, error, permission denied
+- Long text, text scaling at 200%
+- Reduced motion enabled
+- Light and dark modes
+
+### CI Integration
+```yaml
+# .github/workflows/visual-qa.yml
+- name: Golden Tests
+  run: flutter test --update-goldens
+- name: Screenshot Inspection
+  run: flutter test test/screenshots/
+```
+
+## Platform Alignment Checklist
+
+Reference: `references/apple-design-awards-2025.md`, `references/material-3-expressive.md`
+
+### iOS (HIG)
+- [ ] Safe areas, Dynamic Type, SF Symbols
+- [ ] Navigation: UINavigationController stack or go_router equivalent
+- [ ] Haptics: UIImpactFeedbackGenerator equivalent
+- [ ] Back swipe: edge swipe gesture
+- [ ] Sheets: drag-to-dismiss, detents
+
+### Android (M3 Expressive)
+- [ ] Material 3 components (NavigationBar, FilledButton, SegmentedButton)
+- [ ] Dynamic Color: ColorScheme.fromSeed
+- [ ] Predictive back: PopScope
+- [ ] Edge-to-edge: SystemUiOverlayStyle
+- [ ] Spring motion: SpringDescription
+
+### Cross-Platform Neutral
+- [ ] Adaptive components for key surfaces
+- [ ] Platform-consistent navigation pattern
+- [ ] One design system that works on both

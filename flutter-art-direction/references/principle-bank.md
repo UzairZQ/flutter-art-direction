@@ -4,6 +4,125 @@ Use this file when a Flutter app needs a stronger visual or emotional point of v
 
 ## Core Principles
 
+### Visceral-Behavioral-Reflective Alignment
+
+Great apps create emotional coherence across all three Norman levels. Every screen should have an intentional visceral reaction (first impression), reliable behavioral response (usability), and reflective meaning (long-term connection).
+
+Flutter implication:
+
+- Map every visual element to one of three emotional registers: visceral (aesthetic), behavioral (function), reflective (meaning)
+- Ensure empty/error/loading states match the emotional stance
+- Use design tokens to carry emotional meaning (e.g., color_scheme.surfaceBase for calm, accent_primary for attention)
+
+Anti-slop failure:
+
+- Apps that feel emotionally inconsistent (beautiful but unusable, usable but forgettable)
+- Emotional design treated as decoration rather than functional layer
+
+### Design Token as System Layer
+
+Design tokens are the single source of truth for visual decisions. They're not just colors and spacing, but semantic rules that can be checked, validated, and shared across platforms.
+
+Flutter implication:
+
+- Create a token system that automatically generates themes (light/dark, platform, reduced motion)
+- Use tokens for all visual properties: `AppTokens.colors.surfaceBase`, `AppTokens.spacing.cardPadding`, `AppTokens.typography.body`
+- Provide code generation to keep tokens in sync with UI changes
+
+Anti-slop failure:
+
+- Mix of hardcoded values and semantic tokens
+- Visual inconsistency between screens
+
+### Spatial Depth as Hierarchy
+
+Depth in mobile interfaces should communicate information priority, not decoration. Use elevation, shadow, and layering to establish visual hierarchy and cognitive flow.
+
+Flutter implication:
+
+- Implement a limited set of elevation levels (0-5) using shadows or layered surfaces
+- Use depth to indicate importance: cards float above content, modals above everything
+- Consistent depth language across all screens
+
+Anti-slop failure:
+
+- Arbitrary z-index and shadow variations
+- Depth used for decoration without hierarchy purpose
+
+### Material as Implementation Substrate
+
+Material Design and Cupertino are reliable foundations, not design identities. Use them to solve specific platform problems, but let the app's product world define its visual language.
+
+Flutter implication:
+
+- Platform-specific implementations: `MaterialApp` with custom themes, `CupertinoApp` with semantic overrides
+- Compose, don't copy: Material patterns adapted to the app's world
+- Platform affordances should be believable but never the entire UI
+
+Anti-slop failure:
+
+- Generic Material or Cupertino apps without product identity
+- Platform-specific but not app-native
+
+### Adaptive Theming Beyond Light/Dark
+
+Theming is more than color inversion. Modern apps need dynamic color, platform adaptation, and context-aware variations.
+
+Flutter implication:
+
+- Dynamic Color (Material You) adapts to wallpaper/content
+- Platform-specific tuning: more texture on Android, flatter on iOS
+- Responsive theming for different window sizes, orientations, and reduced motion
+
+Anti-slop failure:
+
+- One-size-fits-all theme (dark mode only inversion)
+- Static theming that ignores device context
+
+### Gesture-First Interaction Design
+
+Mobile interactions should prioritize finger gestures, device sensors, and context-aware flows over button-centric interfaces.
+
+Flutter implication:
+
+- Swipe-back navigation, drag-to-reorder, long-press actions
+- Haptic feedback that signals intent
+- Platform-contextual gestures (iOS immune swipe, Android back gesture)
+- Discoverable affordances for gesture vocabulary
+
+Anti-slop failure:
+
+- Button-centric flows that ignore mobile interaction patterns
+- Hidden or poorly labeled gestures
+
+### Spatial Depth as Hierarchy Failure
+
+Depth is abused: random z-index values, inconsistent shadow systems, elevation that doesn't communicate hierarchy.
+
+### Adaptive Theming Failure
+
+Themes are reactive, not anticipatory: dark/light only, platform curves applied without product context.
+
+### Gesture-First Failure
+
+Gestures are documented but not used: generic buttons where swipe-back, drag, and long-press would be more native.
+
+### Accessibility as Design Constraint
+
+Accessibility is not a checklist but a design discipline that shapes layout, typography, motion, and interaction from the start.
+
+Flutter implication:
+
+- Semantic widgets: `Semantics(label: 'button')`, `ExcludeSemantics()`, `MergeSemantics()`
+- Touch target sizes: 44×44pts (iOS), 48×48dp (Android) minimum
+- Color contrast validation: WCAG AA (4.5:1), with higher contrast for large text
+- Reduced motion: `MediaQuery.disableAnimations` respected everywhere
+
+Anti-slop failure:
+
+- Accessibility layered on top of design
+- Assumed rather than designed for accessibility
+
 ### Product world before components
 
 Great mobile apps feel like they come from a world, not a widget catalog. Before designing screens, define the world: museum archive, soft diary, humane coach, flight control room, creative toybox, premium camera, neighborhood marketplace, or focused workbench.
@@ -146,6 +265,118 @@ Reusable rule:
 Avoid copying:
 
 - Do not assume all emotional apps need pastel gradients. The stance matters more than the palette.
+
+## Apple Design Awards 2025 Reference Lessons
+
+### CapWords (Delight & Fun)
+
+Lesson: A language-learning app can transform everyday objects into interactive stickers through camera + animation + sound. Each flashcard transition is meaningful.
+
+Reusable rule:
+
+- For apps that need to recognize real-world objects: use camera, haptics, and sound for layered animation
+- Make learning feel like discovery: snap, animate, reveal, narrate
+- Avoid copying CapWords's educational content — copy its transformation approach
+
+### Speechify (Inclusivity)
+
+Lesson: A text-to-speech app can be approachable UI while serving diverse accessibility needs: Dyslexia, ADHD, low vision, auditory learning.
+
+Reusable rule:
+
+- Design for the widest user base: voice commands, dynamic type, VoiceOver, hundreds of languages
+- Make comprehension clear across cognitive styles: layout hierarchy, focus order, announce state changes
+- Avoid copying Speechify's voice capabilities — copy its accessibility-first approach
+
+### Denims (Interaction)
+
+Lesson: Playlist art can be the driving UI metaphor through mesh gradients, smooth scroll, haptics, depth effects, intelligent cropping.
+
+Reusable rule:
+
+- Use texture and depth to anchor brand identity in the UI
+- Make interactions tactile: haptics confirm, scroll flows naturally
+- Avoid copying Denim's gradient aesthetic — copy its texture-as-interaction approach
+
+### Play (Innovation)
+
+Lesson: A sophisticated prototyping tool can feel approachable with clean, powerful UI, real-time sync, and integration bridges.
+
+Reusable rule:
+
+- Build interfaces that scale: clean navigation, powerful features, seamless export
+- Make collaboration visible: real-time sync, shared views, quick feedback loops
+- Avoid copying Play's prototyping domain — copy its collaboration UX patterns
+
+### Taobao (Spatial 3D)
+
+Lesson: Shopping for physical items can benefit from 3D models that match real counterparts, spatial comparison, and immersive placement.
+
+Reusable rule:
+
+- Use 3D models for products with form-critical visual properties (shape, fit, texture)
+- Enable spatial comparison and placement in the context of the user
+- Avoid copying Taobao's e-commerce domain — copy its spatial interaction patterns
+
+### Moises (AI Simplicity)
+
+Lesson: Pro audio editing can feel approachable when AI is visible, controllable, and explainable, not magical.
+
+Reusable rule:
+
+- Show users what the AI did, not just the result: visualizations, process indicators, reversible controls
+- Make AI transparent: explain choices, provide controls, enable overrides
+- Avoid copying Moises's audio editing — copy its AI transparency patterns
+
+### iA Writer (Distraction-Free Focus)
+
+Lesson: Writing can be separated from interruption through custom keyboard, selective highlighting, iCloud sync, and intuitive gestures.
+
+Reusable rule:
+
+- Remove distractions: fullscreen, keyboard customization, full-text editing
+- Make navigation smooth: swipe-right library, swipe-left preview, haptic feedback
+- Avoid copying iA Writer's functionality — copy its focus-first patterns
+
+### Feather (3D Drawing)
+
+Lesson: Transforming 2D designs into 3D masterpieces can be approachable with touch/Pencil-native gestures, progressive disclosure, and accessible depth controls.
+
+Reusable rule:
+
+- Use native gestures for native tools: touch for basic, Apple Pencil for precision, layer controls for complexity
+- Make complex features discoverable through progressive disclosure
+- Avoid copying Feather's drawing domain — copy its touch-first approach
+
+### Watch Duty: Wildfire Maps (Social Impact)
+
+Lesson: Volunteer-run emergency alerts can be critical, reliable, and accessible when built for speed, clarity, and community trust.
+
+Reusable rule:
+
+- Prioritize critical information: maps, alerts, sources, real-time updates
+- Make it easy for volunteers and users: simple controls, clear feedback loops, minimal friction
+- Avoid copying Watch Duty's domain — copy its crisis communication patterns
+
+### Neva (Social Impact Game)
+
+Lesson: Storytelling within a decaying world can feel meaningful through unique art, intuitive controls, and emotional narrative.
+
+Reusable rule:
+
+- Use art style to convey world-building and narrative tone
+- Keep controls simple and intuitive: drag to move, tap to interact, inventory for items
+- Avoid copying Neva's story — copy its art-driven game design
+
+### Infinity Nikki (Visuals & Graphics)
+
+Lesson: Dress-up games can stand out through premium visuals, high art standards, and fluid interaction.
+
+Reusable rule:
+
+- Focus on visual excellence: high-resolution textures, smooth transitions, brand-consistent art direction
+- Make inventory and selection intuitive: drag-and-drop, layering, strong visual feedback
+- Avoid copying Infinity Nikki's gameplay — copy its visual excellence approach
 
 ### Gentler Streak
 
