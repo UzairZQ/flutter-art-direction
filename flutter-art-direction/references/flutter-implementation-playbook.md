@@ -1,480 +1,358 @@
-# Flutter Implementation Playbook
+# Flutter Art Direction Implementation Playbook
 
-Use this reference after the Design Read and Design Bible are set. It translates art direction into concrete Flutter implementation choices without replacing official Flutter architecture, layout, preview, testing, routing, localization, or networking guidance.
+Use this reference while turning a Design Bible into code. Adapt it to the repository. Do not replace established architecture, state management, routing, or component conventions without a product or engineering reason.
 
 ## Contents
 
-- [Design Bible to Code](#design-bible-to-code)
-- [Theme and Tokens](#theme-and-tokens)
-- [Screen Architecture](#screen-architecture)
-- [Motion](#motion)
-- [Assets and Custom Visuals](#assets-and-custom-visuals)
-- [Adaptive Layout](#adaptive-layout)
-- [Preview and Screenshot QA](#preview-and-screenshot-qa)
-- [Implementation Checklists](#implementation-checklists)
+- Existing-app audit
+- Design Bible to code
+- Theme and tokens
+- App-native composition
+- Adaptive layout and platform behavior
+- Asset systems
+- State design
+- Motion integration
+- Visual verification
+
+## Existing-App Audit
+
+Before editing an existing app, inspect:
+
+- `pubspec.yaml` and SDK constraints
+- app entry point and theme construction
+- current navigation shell and route transitions
+- state-management pattern
+- shared component and token locations
+- assets, fonts, icon sources, and generation tools
+- representative screens and their state models
+- tests, previews, goldens, screenshots, and device scripts
+- current git status
+
+Record:
+
+- **Preserve:** recognizable brand or behavior that already works
+- **Repair:** inconsistent, inaccessible, generic, or brittle patterns
+- **Introduce:** the smallest new visual primitives needed by the brief
+
+Do not interpret a visual refresh as permission to rewrite app architecture.
 
 ## Design Bible to Code
 
-Translate each Design Bible decision into a concrete file, class, or widget family.
-
-| Design Bible choice | Flutter implementation |
+| Design Bible decision | Flutter location |
 |---|---|
-| Platform mode | `MaterialApp`, `CupertinoApp`, adaptive wrappers, platform-specific navigation affordances |
-| Product world | Feature names, asset folders, custom components, screen metaphors |
-| Emotional stance | Copy tone, state design, animation timing, empty/error screens |
-| Palette logic | `ColorScheme`, custom color extensions, semantic tokens |
-| Typography mood | `TextTheme`, app text styles, font assets, line-height rules |
-| Spacing and density | spacing constants, max widths, touch target rules |
-| Shape logic | radius tokens and component themes |
-| Icon style | one icon family or one custom asset style |
-| Imagery and texture | asset manifest, image wrappers, crop ratios, custom painters |
-| Motion language | durations, curves, transition components, reduced-motion path |
-| Navigation model | `go_router`, shell routes, tab state, sheet routes, detail stacks |
-| State design | loading, empty, error, permission, selected, pressed, long-text widgets |
-| QA method | previews, screenshots, golden tests, widget tests, integration flows |
-
-Do not leave a Design Bible item as prose only. If it matters visually, encode it.
+| Platform stance | app shell, route builders, adaptive controls, `ScrollBehavior` |
+| Palette roles | `ColorScheme`, semantic `ThemeExtension`, component themes |
+| Typography | `TextTheme`, bundled fonts, numeral features, text-scale tests |
+| Shape and surface | component themes, `ShapeBorder`, border/elevation tokens |
+| Spacing and density | a small repeated spacing scale and layout constraints |
+| Icon language | one platform or brand family, semantic labels, size tokens |
+| Asset language | typed paths, crop/focal rules, placeholders, decode strategy |
+| Motion language | motion policy, shared curves/springs, route and state transitions |
+| Navigation | existing router, shell, restoration, deep-link behavior |
+| Complete states | feature state model and state-specific compositions |
+| Signature idea | a product-specific widget, transition, painter, or asset system |
 
 ## Theme and Tokens
 
-Create theme primitives before composing rich screens.
+### Tokenize meaning, not every number
 
-Recommended core files for new apps:
+Centralize values when they are:
 
-```text
-lib/ui/core/theme/app_theme.dart
-lib/ui/core/theme/app_colors.dart
-lib/ui/core/theme/app_spacing.dart
-lib/ui/core/theme/app_radii.dart
-lib/ui/core/typography/app_text_styles.dart
-lib/ui/core/motion/app_motion.dart
-lib/ui/core/assets/app_assets.dart
-```
+- repeated across files
+- semantic across themes
+- part of a component contract
+- likely to change as a family
+- necessary for consistent motion or spacing
 
-Use semantic names:
+Keep local:
 
-- `surfaceBase`, `surfaceRaised`, `surfaceMuted`, `accent`, `accentSoft`, `danger`, `success`
-- `spaceXs`, `spaceSm`, `spaceMd`, `spaceLg`, `spaceXl`
-- `radiusSm`, `radiusMd`, `radiusLg`, `radiusPill`
-- `motionFast`, `motionMedium`, `motionSlow`
+- illustration coordinates
+- asset-specific crop values
+- math constants inside a painter
+- one-off geometry that would become less readable through indirection
 
-Avoid:
-
-- raw color literals scattered through widgets
-- unrelated radius values on every component
-- one-off animation durations
-- component names like `PrettyCard` or `FancyButton`
-
-## Screen Architecture
-
-Keep visual richness maintainable by separating roles.
-
-Recommended feature layout:
+### Suggested theme layers
 
 ```text
-lib/ui/features/reflection/
-  view_models/
-    reflection_view_model.dart
-  views/
-    reflection_screen.dart
-  widgets/
-    reflection_prompt_card.dart
-    mood_rhythm_picker.dart
-    reflection_empty_state.dart
+ui/core/theme/
+  app_theme.dart
+  app_color_roles.dart
+  app_text_theme.dart
+  app_component_themes.dart
+ui/core/tokens/
+  app_spacing.dart
+  app_radii.dart
+  app_motion.dart
 ```
 
-Rules:
+Use `ThemeExtension` for semantic values not represented by `ColorScheme` or `ThemeData`.
 
-- Views own layout, safe areas, navigation surfaces, and composition.
-- ViewModels own UI state, commands, and state transitions.
-- Widgets own reusable product-specific pieces.
-- Theme/core files own shared visual language.
-- Data/repository files own real data and mock/sample data boundaries.
+```dart
+@immutable
+class AppSurfaces extends ThemeExtension<AppSurfaces> {
+  const AppSurfaces({
+    required this.success,
+    required this.warning,
+    required this.editorialPaper,
+  });
 
-Use product-specific widget names. A good name explains the app world:
+  final Color success;
+  final Color warning;
+  final Color editorialPaper;
 
-- good: `ArtifactTimeline`, `RecoveryRangeChart`, `ReflectionPromptCard`, `FlightStatusSheet`
-- weak: `InfoCard`, `CustomCard`, `HomeTile`, `StatsWidget`
+  @override
+  AppSurfaces copyWith({
+    Color? success,
+    Color? warning,
+    Color? editorialPaper,
+  }) {
+    return AppSurfaces(
+      success: success ?? this.success,
+      warning: warning ?? this.warning,
+      editorialPaper: editorialPaper ?? this.editorialPaper,
+    );
+  }
 
-## Motion
+  @override
+  AppSurfaces lerp(covariant AppSurfaces? other, double t) {
+    if (other == null) return this;
+    return AppSurfaces(
+      success: Color.lerp(success, other.success, t)!,
+      warning: Color.lerp(warning, other.warning, t)!,
+      editorialPaper:
+          Color.lerp(editorialPaper, other.editorialPaper, t)!,
+    );
+  }
+}
+```
 
-Motion must communicate hierarchy, storytelling, feedback, or state transition.
+### Shape grammar
 
-Use Flutter primitives first:
+Define a reason for each shape family:
 
-- `AnimatedSwitcher` for state replacement
-- `AnimatedContainer` for simple property transitions
-- `TweenAnimationBuilder` for local animated values
-- `AnimationController` for coordinated screen motion
-- `Hero` for meaningful shared elements
-- `PageRouteBuilder` or router transitions for route-level personality
+- buttons and direct controls
+- content containers
+- modal or elevated layers
+- selected or transforming states
+- bespoke product objects
 
-Use packages only when they already exist or clearly justify themselves:
+Avoid one universal radius for every component and avoid arbitrary per-widget radii. A small semantic scale is usually enough.
 
-- `flutter_animate` for expressive chained effects
-- `rive` for authored vector animation systems
-- `lottie` for provided motion assets
+### Typography
 
-Always provide a reduced-motion path for strong motion:
+- Bundle or load fonts according to project policy and license.
+- Define role styles in `TextTheme`; do not hard-code a new type scale in every screen.
+- Keep body line length constrained on tablets and desktop windows.
+- Use tabular figures for values that update or align in columns.
+- Test bold text, large system text, localization, and mixed-script fallback.
+- Avoid `FittedBox` as a general cure for overflowing text.
 
-- use shorter durations, opacity-only fades, or static end states
-- do not make content unreachable when animation is disabled
-- avoid infinite loops unless they communicate live status or gentle ambience
+## App-Native Composition
 
-Avoid:
+### Start with the shell
 
-- perpetual shimmer, pulse, float, or carousel motion on static information
-- route transitions that hide where the user went
-- physics that feels playful in a trust-heavy app
-- animation implemented with repeated `setState` on every frame when an `AnimationController` or builder would isolate updates
+Decide:
 
-## Assets and Custom Visuals
+- top-level destinations
+- navigation bar, rail, drawer, tabs, or platform-specific alternative
+- safe-area and system-bar behavior
+- back and deep-link behavior
+- how state and scroll position survive navigation
 
-Asset work is part of the art direction.
+Then compose feature screens inside that model. Do not put a marketing-site hero and CTA stack inside every phone screen.
 
-Create folders by product world, not by random screen:
+### Use content-shaped layouts
+
+Choose based on information:
+
+- `CustomScrollView` and slivers for heterogeneous scroll and collapsing structure
+- `ListView.builder` or sliver builders for long collections
+- `PageView` or `CarouselView` for discrete chapters or browseable media
+- `Stack` for bounded, authored overlap
+- `LayoutBuilder` for available-space decisions
+- `ConstrainedBox` and centered content for readable large-screen widths
+- `Wrap`, grids, or multi-pane composition when width allows
+
+Avoid nested unconstrained scrollables, `shrinkWrap` as a default fix, and layout decisions based only on portrait versus landscape.
+
+### Keep controls reachable
+
+- Place frequent actions in thumb-reachable regions where platform conventions allow.
+- Keep drag and system-back gesture regions from fighting.
+- Reserve bottom inset for persistent bars and the keyboard.
+- Use visible alternatives for custom gestures.
+- Keep fixed controls out of display cutouts and system-gesture regions.
+
+## Adaptive Layout and Platform Behavior
+
+Adapt three different things deliberately:
+
+1. **Available space:** layout, pane count, gutters, content width, image crop.
+2. **Input capability:** touch, mouse, keyboard, trackpad, stylus.
+3. **Platform convention:** route transition, back gesture, text editing, scrolling, haptics, icon idiom.
+
+Use `LayoutBuilder` and `MediaQuery.sizeOf` for layout. Use platform checks only for actual platform policy or convention, not as a proxy for screen size.
+
+Flutter already adapts many behaviors. Preserve that behavior unless the product explicitly needs a shared interaction model and the replacement is tested on every target.
+
+### Edge-to-edge
+
+- Let backgrounds and scrolling media extend under system bars when appropriate.
+- Inset text, controls, and drag targets.
+- Use `SafeArea` or selected `MediaQuery.paddingOf` values intentionally.
+- Avoid applying `SafeArea` around an entire immersive scene if it creates visible dead bands; protect interactive content instead.
+- Test Android gesture and three-button navigation plus iOS home-indicator regions.
+
+## Asset Systems
+
+### Build an asset brief
+
+For each required asset, specify:
+
+- content and purpose
+- visual style
+- aspect ratio and minimum resolution
+- focal point and crop behavior
+- background and transparency
+- light/dark variants
+- semantic description
+- loading and failure state
+- license and provenance
+
+### Layered art
+
+For an immersive scene:
 
 ```text
-assets/images/common/
-assets/images/reflection/
-assets/images/recovery/
-assets/images/artifacts/
-assets/textures/
-assets/icons/
+scene/
+  background/
+  middle/
+  foreground/
+  overlays/
+  texture/
 ```
 
-Use stable media rules:
+Each layer should have a depth role, responsive anchor, and motion range. Do not create parallax from one flattened image unless a simple crop shift is sufficient.
 
-- define repeatable aspect ratios for image cards, headers, thumbnails, and share artifacts
-- protect text over images with scrims, fades, or masks
-- avoid mixing photo, 3D, line-art, and sticker styles unless the system defines why
-- use `RepaintBoundary` around heavy custom paint, image stacks, and animated effects
-- compress and size assets for mobile screens
+### Image performance
 
-Custom paint is appropriate for:
+- Decode close to rendered size where practical.
+- Preserve aspect ratio and focal point.
+- Pre-cache only assets needed soon.
+- Keep placeholders structurally stable.
+- Avoid giant transparent images for small decorative layers.
+- Check memory when several full-screen pages stay alive.
+- Verify network errors and slow loading.
 
-- charts with product-specific meaning
-- timelines, maps, guides, range bands, or progress metaphors
-- subtle texture, masks, or illustration pieces
-
-Custom paint is not appropriate for:
-
-- icons that should come from an asset or icon family
-- decorative noise that makes text harder to read
-- complex visuals that cannot be maintained or tested
-
-## Adaptive Layout
-
-Design for constraints, not device names.
+### Custom visuals
 
 Use:
 
-- `LayoutBuilder` for parent constraints
-- `MediaQuery.sizeOf(context)` for app window size
-- `SafeArea` or explicit safe-area padding where content touches system regions
-- `ConstrainedBox` for max content width on tablets and desktop
-- `SliverList`, `SliverGrid`, and `CustomScrollView` for rich scroll surfaces
-
-Check:
-
-- small phone width
-- large phone width
-- tablet or wide layout if supported
-- landscape if the app can rotate
-- long localized text
-- large text scale when accessibility matters
-
-Avoid:
-
-- hard-coding layout from "phone" or "tablet"
-- top-level `OrientationBuilder` as the main layout switch
-- scrollables inside unconstrained columns
-- important content under bottom navigation or home indicators
-- tiny decorative labels that fail under text scaling
-
-## Preview and Screenshot QA
-
-Visual QA is mandatory for visual work.
-
-Preferred order:
-
-1. Add widget previews when the project supports Flutter widget previews.
-2. Run the app or preview and capture screenshots for target states.
-3. Inspect screenshots for safe areas, text scale, spacing, contrast, and AI tells.
-4. Add widget tests or golden tests when behavior or visuals are stable enough.
-5. Add integration tests for important flows.
-
-Preview scenarios to create when relevant:
-
-- default state
-- loading state
-- empty state
-- error state
-- permission denied state
-- long text state
-- selected and pressed states
-- light and dark modes when supported
-- small phone and large phone constraints
-
-Screenshot acceptance:
-
-- no overflow stripes
-- no clipped text
-- no unreadably small copy
-- no critical controls in unsafe regions
-- no nested-card clutter
-- no copied reference-app styling
-- no generic AI tells from `SKILL.md`
-- main flow is understandable from the first view
-
-## Implementation Checklists
-
-### New screen
-
-- Declare the Flutter Design Read.
-- Lock the Design Bible.
-- Read the principle bank if the app is visual, emotional, immersive, or category-specific.
-- Map the Design Bible into theme, motion, assets, navigation, and state widgets.
-- Build with constraints and safe areas from the start.
-- Add or update previews for key states.
-- Capture or inspect screenshots.
-- Run `flutter analyze` and relevant tests.
-- Fix every Visual QA Gate failure before final delivery.
-
-### Existing app screen
-
-- Identify current architecture, theme, navigation, and state patterns.
-- Preserve existing project conventions unless they directly cause visual or UX failure.
-- Add art-direction structure only where it reduces repetition or clarifies the system.
-- Do not migrate state management or routing just for taste work.
-- Improve the screen in focused passes: hierarchy, palette, type, spacing, states, motion, assets, QA.
-
-### Highly visual app
-
-- Consider image concepts first.
-- Define asset language and media frame rules.
-- Use product-world widget names.
-- Build custom visuals as reusable pieces.
-- Use reduced-motion paths and `RepaintBoundary`.
-- Verify with screenshots on real mobile proportions.
-
-## Design Tokens in Code
-
-Reference: `references/design-token-architecture.md`
-
-Implement a three-tier token system before any widget code.
-
-### File Structure
-```text
-lib/ui/core/tokens/
-  primitives/           # Raw values: color-primitives.dart, spacing-primitives.dart
-  semantic/             # Context-aware: colors.dart, spacing.dart, typography.dart
-  component/            # Component-scoped: button-tokens.dart, card-tokens.dart
-```
-
-### Code Gen Pipeline
-1. Source: `tokens/source/figma-tokens.json`
-2. Transform: `scripts/generate_tokens.dart` → Dart files
-3. Output: `lib/ui/core/tokens/`
-
-### Usage Rules
-- **NEVER** hardcode raw values in widget code
-- **ALWAYS** use semantic tokens: `AppTokens.semantic.color.surfaceBase`
-- **Use** component tokens for component-specific overrides
-
-### Platform-Adaptive Tokens
-```dart
-static BorderRadius get radiusCard =>
-  Platform.isAndroid ? BorderRadius.circular(16) // M3
-                     : BorderRadius.circular(12); // iOS
-```
-
-## Adaptive Theming in Practice
-
-Reference: `references/adaptive-theming.md`
-
-### Dynamic Color
-```dart
-final colorScheme = ColorScheme.fromSeed(
-  seedColor: brandSeed,
-  dynamicSchemeVariant: DynamicSchemeVariant.fidelity,
-);
-final fallbackScheme = ColorScheme.fromSeed(seedColor: brandSeed);
-```
-
-### Platform-Adaptive Components
-| Component | Android (M3) | iOS (Cupertino) | Neutral |
-| Button | FilledButton | CupertinoButton | Stadium |
-| Nav Bar | NavigationBar | CupertinoTabBar | Adaptive |
-| Dialog | AlertDialog | CupertinoAlertDialog | Custom |
-| Switch | Switch.adaptive | CupertinoSwitch | Switch.adaptive |
-
-### Semantic Color Roles
-Use `Theme.of(context).colorScheme.surfaceContainerHigh` instead of `Colors.grey[100]`.
-
-## Motion System
-
-Reference: `references/motion-with-intent.md`
-
-Every animation must map to one of 5 intent categories: Navigational, Feedback, State Transition, Emotional/Storytelling, Brand.
-
-### Spring Physics Defaults
-| Feeling | Stiffness | Damping | Use Case |
-| Crisp | 300 | 25 | Feedback, button press |
-| Standard | 210 | 20 | Navigational, default |
-| Soft | 150 | 12 | State transitions, sheets |
-| Loose | 100 | 8 | Celebrations, storytelling |
-
-### Reduced Motion Pattern
-```dart
-final disableAnimations = MediaQuery.of(context).disableAnimations;
-final duration = disableAnimations ? Duration.zero : AppMotion.mediumSpring.duration;
-```
-
-### Choreography Rules
-- Max 2 concurrent motions per screen
-- Stagger children: `delay = index * 50ms`
-- Parent completes before children for enters
-- Exits in parallel (fast)
-
-## Spatial/Depth Implementation
-
-Reference: `references/spatial-mobile-design.md`
-
-Use 4 depth layers: Base (0), Surface (1-3), Raised (6-8), Overlay (12-16).
-
-### Glass as Hierarchy
-```dart
-ClipRRect(
-  borderRadius: AppRadii.card,
-  child: BackdropFilter(
-    filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-    child: Container(
-      color: Colors.white.withOpacity(0.7),
-      child: content,
-    ),
-  ),
-)
-```
-
-### Parallax on Scroll
-- Hero parallax: max 20px offset via `Transform.translate`
-- Gyroscope tilt: subtle 3D on 2D (opt-in, reduced-motion off)
-
-## Gesture System Implementation
-
-Reference: `references/gesture-first-navigation.md`
-
-### Core Gestures
-| Gesture | Affordance | Fallback |
-| Edge swipe back | System gesture + optional < | Back button |
-| Drag down | Sheet drag handle | Close button |
-| Long press | Haptic + scale | Context menu |
-| Swipe horizontal | Reveal actions | Trailing button |
-
-### Back Gesture (go_router compatible)
-```dart
-PopScope(
-  canPop: false,
-  onPopInvoked: (didPop) => if (!didPop) context.pop(),
-  child: Scaffold(...),
-)
-```
-
-### Sheet Dismiss
-```dart
-DraggableScrollableSheet(
-  initialChildSize: 0.5,
-  minChildSize: 0.25,
-  maxChildSize: 0.9,
-  builder: (context, scrollController) => SheetContent(
-    dragHandle: true,
-    onDragEnd: (details) =>
-      if (details.velocity.pixelsPerSecond.dy > 500) context.pop(),
-  ),
-)
-```
-
-## Emotional Design Integration
-
-Reference: `references/emotional-design-framework.md`
-
-### Norman's 3 Levels → Widget Mapping
-| Level | Design Concern | Flutter Pattern |
-| Visceral | Immediate reaction | Theme, hero imagery, first-frame motion |
-| Behavioral | Flow & usability | Navigation, state design, micro-interactions |
-| Reflective | Meaning & memory | Empty states, milestones, share artifacts |
-
-### Emotional Stance Validation
-Every screen must have intentional choices at all 3 levels. Empty/error states are reflective-level surfaces.
-
-## Accessibility Implementation
-
-Reference: `references/accessibility-gates.md`
-
-### CI-Enforced Gates
-1. Reduced motion: `MediaQuery.disableAnimations` respected
-2. Text scaling: tested at 200%
-3. Semantics: labels on all interactive elements
-4. Contrast: 4.5:1 (AA) minimum
-5. Touch targets: 48×48dp minimum
-
-### Implementation Pattern
-```dart
-Semantics(
-  label: 'Close dialog',
-  hint: 'Double tap to dismiss',
-  child: IconButton(
-    icon: Icon(Icons.close),
-    onPressed: () => Navigator.pop(context),
-  ),
-)
-```
-
-## Golden/Screenshot Testing
-
-Reference: `references/preview-and-screenshot-qa.md`
-
-### Device Matrix
-- Small phone (320px width)
-- Large phone (414px width)
-- Tablet (768px+) if supported
-- Landscape if app rotates
-
-### Scenarios
-- Default, loading, empty, error, permission denied
-- Long text, text scaling at 200%
-- Reduced motion enabled
-- Light and dark modes
-
-### CI Integration
-```yaml
-# .github/workflows/visual-qa.yml
-- name: Golden Tests
-  run: flutter test --update-goldens
-- name: Screenshot Inspection
-  run: flutter test test/screenshots/
-```
-
-## Platform Alignment Checklist
-
-Reference: `references/apple-design-awards-2025.md`, `references/material-3-expressive.md`
-
-### iOS (HIG)
-- [ ] Safe areas, Dynamic Type, SF Symbols
-- [ ] Navigation: UINavigationController stack or go_router equivalent
-- [ ] Haptics: UIImpactFeedbackGenerator equivalent
-- [ ] Back swipe: edge swipe gesture
-- [ ] Sheets: drag-to-dismiss, detents
-
-### Android (M3 Expressive)
-- [ ] Material 3 components (NavigationBar, FilledButton, SegmentedButton)
-- [ ] Dynamic Color: ColorScheme.fromSeed
-- [ ] Predictive back: PopScope
-- [ ] Edge-to-edge: SystemUiOverlayStyle
-- [ ] Spring motion: SpringDescription
-
-### Cross-Platform Neutral
-- [ ] Adaptive components for key surfaces
-- [ ] Platform-consistent navigation pattern
-- [ ] One design system that works on both
+- `CustomPaint` for diagrams, paths, procedural motifs, and finite effects
+- fragment shaders for bounded GPU effects
+- Rive for interactive vector state machines
+- Lottie for authored playback assets
+- platform views only when the capability requires them
+
+Always preserve semantics and non-animated meaning outside the visual layer.
+
+## State Design
+
+Create compositions for:
+
+- initial/loading
+- loaded
+- empty
+- error and retry
+- offline or stale data
+- permission before request, denied, and permanently denied
+- pressed, focused, hovered, selected, disabled
+- destructive confirmation and undo
+- long text and localization
+- large values, missing values, and partial data
+
+Do not simply center a spinner for every load. The state should preserve the expected hierarchy and layout stability.
+
+### Honest fixtures
+
+When real data is unavailable:
+
+- label fixtures as sample or preview data
+- keep values plausible but do not imply product performance
+- do not fabricate testimonials, customers, health outcomes, or financial results
+- ensure fixture states include failure and edge cases
+
+## Motion Integration
+
+Read `motion-and-scroll.md` for deep patterns.
+
+At implementation time:
+
+- add a central reduced-motion policy
+- keep motion parameters near the component or shared motion role they control
+- use stable keys for state and Hero continuity
+- isolate animated rebuild and repaint scope
+- pre-cache imminent signature assets
+- dispose controllers and listeners
+- preserve actions during transitions
+- test reversal, repeated taps, back gestures, and route interruption
+
+Do not add `flutter_animate`, Rive, Lottie, a carousel, or a particle package before proving a built-in widget cannot express the desired result cleanly.
+
+## Visual Verification
+
+### Preview matrix
+
+Create previews or test harness states for:
+
+- small phone
+- representative large phone
+- tablet or resizable wide window when supported
+- light and dark themes
+- text scale around 1.0 and a large system scale
+- loaded, loading, empty, error
+- reduced motion
+- long localized content
+
+The Widget Previewer is experimental; keep previews easy to update.
+
+### Screenshot and device pass
+
+Inspect:
+
+- hierarchy at a glance
+- content below fixed bars
+- safe areas and edge-to-edge backgrounds
+- crop and focal point
+- text wrap and truncation
+- selected, pressed, disabled, and focus visuals
+- keyboard appearance and field visibility
+- scroll start, mid-state, and end-state
+- route push, pop, and system back
+- motion in profile mode
+
+### Test support
+
+Use official Flutter testing guidance for:
+
+- widget behavior
+- accessibility guidelines
+- integration flows
+- goldens or screenshots
+
+Keep golden coverage focused on stable visual contracts. Do not lock every animated intermediate frame unless it protects a real regression.
+
+## Implementation Checklist
+
+- [ ] Existing architecture and visual system inspected.
+- [ ] Preserve, repair, and introduce decisions recorded.
+- [ ] Design Bible maps to discoverable code locations.
+- [ ] Tokens cover semantic repetition without hiding bespoke geometry.
+- [ ] Shell, back behavior, and system insets are intentional.
+- [ ] Layout responds to available space.
+- [ ] Assets have crop, fallback, provenance, and memory strategy.
+- [ ] Complete states are implemented.
+- [ ] Motion policy and interruption behavior exist.
+- [ ] Custom visuals preserve semantics.
+- [ ] Preview and screenshot matrix was inspected.
+- [ ] Accessibility and performance checks match the feature's risk.

@@ -1,601 +1,235 @@
 ---
 name: flutter-art-direction
-description: |-
-  Agent identity: Flutter Art Director. Translates product intent into authored, app-native Flutter UIs that don't look AI-generated.
-  Activation: This skill activates when the user asks you to design, build, or improve Flutter UI, screens, flows, themes, or components.
-  It does NOT fire for business logic, data layers, API integration, database schema, CI/CD configuration, or non-Flutter projects.
-  If the user asks about architecture or codegen, apply architecture guidance only where it intersects with visual output.
-  None of this fires automatically — read the brief first, then apply the relevant workflow steps.
-metadata:
-  model: any
-  last_modified: Mon, 06 Jul 2026 00:00:00 GMT
-  source: flutter/skills (official), Leonxlnx/taste-skill, apple-design-awards-2025, don-norman-emotional-design
+description: Design, build, review, or refine authored Flutter interfaces and motion systems. Use for Flutter screens, flows, themes, visual systems, responsive app UI, interaction design, animation, CustomPaint or shader effects, visual QA, and redesigns that must avoid generic AI-generated aesthetics. Do not use for backend-only or non-visual Flutter work.
 ---
 
 # Flutter Art Direction
 
-## Your Identity
+Act as a Flutter art director who can also ship production UI. Translate product truth into a coherent visual world, then implement it with Flutter-native interaction, motion, accessibility, and performance discipline.
 
-You are the **Flutter Art Director**. Your job: make Flutter UI feel authored, app-native, and emotionally intentional — not AI-generated.
+Do not copy a reference app. Extract its design logic, then make choices specific to the current product, audience, content, and platform.
 
-Before any code: **roll the dials, print your read, lock the package map, plan the screen tree**. Never jump straight to widget code.
+## Route References
 
-## Activation Context
+Read only the references needed for the task:
 
-This skill applies when the user asks you to:
-- design or implement Flutter screens, pages, or flows
-- create or update themes, tokens, typography, or motion
-- build custom widgets, components, or screen layouts
-- review or improve visual quality of Flutter UI
-- generate image concepts for mobile app screens
+- Read `references/principle-bank.md` when choosing an art direction or interpreting app references.
+- Read `references/motion-and-scroll.md` for immersive, gesture-driven, scroll-reactive, Hero, layered-asset, CustomPaint, shader, Rive, or Wonderous-like work.
+- Read `references/flutter-implementation-playbook.md` while translating a Design Bible into Flutter structure and widgets.
+- Read `references/flutter-2026.md` before using recent Flutter APIs or making version-dependent claims.
+- Read `references/anti-slop-and-qa.md` for redesign audits and before delivering visual work.
+- Read `references/source-notes.md` when a claim needs provenance or current verification.
 
-It does **not** apply to:
-- backend logic, API routes, database schema, data models (unless they affect UI)
-- CI/CD pipelines, deployment, build scripts
-- non-Flutter code or non-mobile projects
-- pure architecture discussions with no visual output
+Use official Flutter skills for architecture, responsive layout, previews, tests, routing, localization, and networking when those tasks are in scope. This skill owns art direction and visual integration; it does not replace those engineering guides.
 
-## Contents
+## Operating Rules
 
-- [Bias Correction](#bias-correction)
-- [Dials](#dials)
-- [Brief-to-Package Map](#brief-to-package-map)
-- [Workflow](#workflow)
-  - [0. Pre-Code Ritual](#0-pre-code-ritual)
-  - [1. Read the Brief](#1-read-the-brief)
-  - [2. Lock the Design Bible](#2-lock-the-design-bible)
-  - [3. Apply the Emotional Design Framework](#3-apply-the-emotional-design-framework)
-  - [4. Define the Design Token Architecture](#4-define-the-design-token-architecture)
-  - [5. Run the Anti-AI-Slop Registry](#5-run-the-anti-ai-slop-registry)
-  - [6. Design Motion with Intent](#6-design-motion-with-intent)
-  - [7. Apply Spatial Mobile Design](#7-apply-spatial-mobile-design)
-  - [8. Implement Adaptive Theming](#8-implement-adaptive-theming)
-  - [9. Design Gesture-First Navigation](#9-design-gesture-first-navigation)
-  - [10. Enforce Accessibility Gates](#10-enforce-accessibility-gates)
-  - [11. Make the Design System AI-Ready](#11-make-the-design-system-ai-ready)
-  - [12. Align with Platform Conventions](#12-align-with-platform-conventions)
-  - [13. Use Flutter Architecture Without Losing the Art](#13-use-flutter-architecture-without-losing-the-art)
-  - [14. Use Image Concepts Selectively](#14-use-image-concepts-selectively)
-- [BANNED Patterns](#banned-patterns)
-- [Honesty Rules](#honesty-rules)
-- [Workflow Summary](#workflow-summary)
-- [Visual QA Gate](#visual-qa-gate)
-- [Example Responses](#example-responses)
-
-## Bias Correction
-
-When generating Flutter code, you will default to these patterns. Correct them:
-
-| Bias | Default Pattern | Correction |
-|------|----------------|------------|
-| Navigation | `Scaffold → AppBar → ListView` on every screen | Navigation shell (`NavigationBar`/`NavigationRail`) defined before content |
-| Colors | Generic purple-blue gradient from `LinearGradient` literals | `ColorScheme.fromSeed(seedColor: brandHex)` in `ThemeData` |
-| Charts | `Random()` data in `fl_chart` with fake percentages | Data source + `sealed class ChartData { Loading, Empty, Error, Loaded }` |
-| Onboarding | 3 identical slides with icon/headline/body + "Skip" + "Get Started" | Just-in-time permission/personalization; zero slides if possible |
-| Icons | `Icons.*` for everything including brand features | Custom `IconData` font for brand concepts; `Icons.*` only for platform actions |
-| Cards | `Card` inside `Card` with competing elevations | Flat sections with `Divider`/`Padding` within a single surface |
-| Glass | `BackdropFilter` with `ImageFilter.blur` on every background | `colorScheme.surfaceContainerHighest.withOpacity()`; blur only with perf budget |
-| Names | `Acme`, `Nova`, `Flow`, `Nexus`, `Smart`, `Pulse`, `Vibe` | `{PLACEHOLDER}` with TODO or `--dart-define` env config |
-| Copy | "Elevate", "unlock", "seamless", "next-gen", "revolutionize" | Specific, measurable value propositions |
-| Metrics | `Text('87.4%')` static percentage literals | `ValueListenableBuilder` / `StreamBuilder` bound to real data |
-| Spacing | `EdgeInsets.all(16)` in every file | Centralized `Spacing` class or theme tokens |
-| Radius | `BorderRadius.circular(8)` in one file, `circular(16)` in another | 3–4 token values: `RadiusTokens.sm/md/lg` |
-| Shimmer | `.repeat()` forever, even after content loads | Stop on content arrival; check `MediaQuery.disableAnimations` |
-| Routes | Fade-only transitions >500ms with no direction | Platform-native routes ≤300ms with directional slide |
-| Physics | `BouncingScrollPhysics` on finance, default everywhere else | Match to brand persona + platform convention |
-| Motion | Decorative animation with no purpose | Every animation maps to exactly 1 of 5 intent categories (see below) |
-| Tokens | `Color(0xFF…)`, `EdgeInsets.all(N)` in widget code | Zero raw values; all via theme/semantic tokens |
-
-## Dials
-
-Set before implementation. These are constraints, not labels.
-
-| Dial | Value = 1 | Value = 10 |
-|------|-----------|------------|
-| `ART_DIRECTION` | plain utility | highly authored world |
-| `PLATFORM_AWARENESS` | generic mobile | strongly app-native |
-| `FLOW_LOGIC` | isolated screens | believable user journey |
-| `MOTION_INTENSITY` | static | cinematic / physics-led |
-| `VISUAL_DENSITY` | airy | dense / operational |
-| `NON_GENERICITY` | familiar template | distinct product identity |
-
-**Category Defaults:**
-
-| Category | Art | Plat | Flow | Motion | Density | Non-Generic |
-|----------|-----|------|------|--------|---------|-------------|
-| Creative / Consumer | 9 | 9 | 9 | 7 | 3 | 9 |
-| Trust / Finance / Health | 5 | 10 | 9 | 3 | 5 | 7 |
-| Productivity / Tools | 6 | 9 | 9 | 4 | 7 | 8 |
-| Social / Community | 8 | 8 | 8 | 6 | 5 | 8 |
-| Education / Culture / Travel | 9 | 7 | 8 | 6 | 4 | 9 |
-
-If motion cannot be implemented and verified in scope, lower `MOTION_INTENSITY` and ship a polished static interaction rather than broken animation.
-
-## Brief-to-Package Map
-
-When the user's brief implies a category, use these packages. **Never recreate what a package already provides.**
-
-| Category | State | Nav | Components | Charts | Icons | Motion | Key Packages |
-|----------|-------|-----|------------|--------|-------|--------|-------------|
-| Finance / Trust | Riverpod / Bloc | go_router | Material 3 (themed) | fl_chart | Material Icons | spring (crisp, stiffness 300) | `clamping_scroll_physics`, `intl` |
-| Creative / Consumer | Riverpod | go_router | Forui / shadcn_flutter | none | phosphor_flutter / custom | flutter_animate / Rive | `image_picker`, `video_player` |
-| Productivity / Tools | Riverpod | go_router | Material 3 (compact) | fl_chart | SF Symbols / Material | spring (snappy, stiffness 250) | `google_fonts`, `drift` |
-| Social / Community | Provider / Riverpod | go_router | shadcn_flutter / M3 | none | custom IconData | flutter_animate | `image_picker`, `cached_network_image` |
-| Health / Wellness | Riverpod | go_router | Material 3 (expressive) | fl_chart | SF Symbols | spring (soft, stiffness 150) | `health`, `haptic_feedback` |
-| Education / Culture | Riverpod | go_router | Custom / art-led | fl_chart | custom IconData | Lottie / Rive | `google_fonts`, `video_player` |
-| Travel / Commerce | Provider / Riverpod | go_router | Material 3 (expressive) | fl_chart | phosphor_flutter / Material | flutter_animate | `google_maps_flutter`, `cached_network_image` |
-
-**Platform modes:**
-- `iOS-native`: `CupertinoNavigationBar`, `CupertinoTabBar`, `HapticFeedback`, SF Symbols via `ios_icons` or `sf_symbols` package
-- `Android-native`: `NavigationBar`, `NavigationRail`, `PredictiveBack` (Android 14+), Dynamic Color via `ColorScheme.fromSeed`
-- `cross-platform premium neutral`: Adaptive components via `platform_adaptive` or `adaptive_components`, `go_router` `ShellRoute` for navigation shells
-
-**Default package picks (when brief is silent):**
-- State: `flutter_riverpod` (Riverpod)
-- Navigation: `go_router` with `ShellRoute` for persistent nav
-- Tokens: Manual Dart classes with `flutter_gen` if assets exist
-- Motion: Implicit Flutter animations + `flutter_animate` for chained effects
-- Charts: `fl_chart` with `sealed class ChartData` state pattern
-- Icons: SF Symbols on iOS, Material Icons on Android, custom font for brand
-- Theme: `ColorScheme.fromSeed` + `ThemeExtension` for custom tokens
+- Inspect an existing app before proposing a new visual system. Preserve working product behavior, brand assets, navigation, analytics hooks, and user-owned design decisions unless the brief explicitly changes them.
+- Treat Material and Cupertino as behavioral substrates, not complete product identities.
+- Prefer platform-adaptive behavior where users have strong learned expectations: back navigation, text editing, scrolling, selection, sheets, system bars, and haptics.
+- Use constraints and available space, not device labels, to adapt layout.
+- Make motion interruptible, reversible where appropriate, and subordinate to input. Never force a user to wait for decoration.
+- Keep design decisions centralized, but do not create a token abstraction for every literal. Repeated or semantic values deserve tokens; one-off geometry inside a bespoke illustration may remain local.
+- Add packages only after checking the existing `pubspec.yaml`, maintenance, platform support, license, and whether Flutter already provides the capability.
+- Never invent product data, testimonials, metrics, brand assets, or precision. Use real state, clearly labeled fixtures, or honest placeholders.
+- Verify visual work in rendered output. Code inspection alone is not visual QA.
+- Keep the visible process proportional. For implementation requests, state the Design Read and compact decisions, then build; do not turn the response into a design document unless the user asked for one.
 
 ## Workflow
 
-### 0. Pre-Code Ritual
+### 1. Read the Product Before the Pixels
 
-Before writing any Flutter widget code, execute this sequence in order. Check off each step as you complete it.
+Infer or inspect:
 
-- [ ] **Roll the dials** — set all 6 dial values from the brief. Print them.
-- [ ] **Print your design read** — output exactly: `Flutter Design Read: <category> for <audience>, <platform mode>, with a <product world> visual language and a <emotional stance> toward the user.`
-- [ ] **Lock the package map** — choose state, nav, components, icons, motion packages. If the brief is silent, use defaults above.
-- [ ] **Plan the screen tree** — list every screen, its state variants (loading/empty/error/loaded/permission), and the navigation relationships between them.
+- the primary user, job, and usage context
+- the most important action or feeling on this screen
+- the actual data and states the UI must carry
+- platform targets and minimum Flutter version
+- existing architecture, theme, components, assets, fonts, and packages
+- reference signals and what the user likes about them
+- trust, health, safety, accessibility, localization, or regulated constraints
 
-If you cannot set all dials from the brief, ask one clarifying question — but only if it would meaningfully change the design direction.
+Ask one focused question only when different answers would produce materially different directions. Otherwise state the assumption and proceed.
 
-> **Validator:** Re-read your design read, dials, and screen tree. Does the platform mode match the navigation model? Do the dials match the brief's emotional stance? Fix before proceeding.
+### 2. Declare the Flutter Design Read
 
-### 1. Read the Brief
+Before implementation, output one sentence:
 
-Infer:
-- app category and primary user
-- platform mode: `iOS-native premium`, `Android-native premium`, or `cross-platform premium neutral`
-- product world: the visual universe the app belongs to
-- emotional stance: how the app should make the user feel
-- reference signals: apps, screenshots, brands, or user taste words
-- quiet constraints: accessibility, trust, health, safety, kids, public-sector, or regulated domains
+`Flutter Design Read: <product and audience>, <platform stance>, with a <product-world> visual language, a <emotional stance> toward the user, and <signature interaction or material idea>.`
 
-### 2. Lock the Design Bible
+Example:
 
-Before building screens, lock these choices and keep them consistent. Every item must be decided before code.
+`Flutter Design Read: a private reflection tool for mentally overloaded adults, cross-platform with native behavior, using a quiet nocturnal field-notes world, a non-judgmental stance, and entries that unfold through tactile layered paper.`
 
-- [ ] platform mode and navigation model
-- [ ] product world and emotional stance
-- [ ] palette logic, including background family and accent use
-- [ ] typography mood and type scale rhythm
-- [ ] spacing, density, and touch-target rhythm
-- [ ] shape / corner-radius logic
-- [ ] icon style and illustration / custom-paint language
-- [ ] imagery, texture, and asset strategy
-- [ ] motion language and reduced-motion fallback
-- [ ] state design: loading, empty, error, permission, selected, pressed, long-text
-- [ ] QA method: widget preview, screenshot, simulator/device, or visual test
+Avoid vague labels such as "premium", "modern", or "beautiful" unless the sentence explains what they mean for this product.
 
-For deeper inspiration, optionally read `references/principle-bank.md` (not required for every brief).
+### 3. Set the Dials
 
-### 3. Apply the Emotional Design Framework
+Choose integer values from 1 to 10 and explain unusual extremes:
 
-Don Norman's three levels, mapped to Flutter. Every screen must have intentional choices at all three levels.
+| Dial | 1 | 10 |
+|---|---|---|
+| `ART_DIRECTION` | utilitarian | fully authored world |
+| `PLATFORM_AWARENESS` | shared generic behavior | deeply platform-aware behavior |
+| `FLOW_LOGIC` | isolated mockup | complete believable journey |
+| `MOTION_INTENSITY` | nearly static | choreographed and physics-led |
+| `VISUAL_DENSITY` | sparse | operationally dense |
+| `NON_GENERICITY` | conventional | unmistakably product-specific |
 
-| Level | What It Controls | Flutter Implementation | Failure Mode |
-|-------|-----------------|----------------------|-------------|
-| **Visceral** (first 500ms) | Color, shape, texture, motion, imagery | `ThemeData`, hero images, initial motion choreography | Pretty but unusable |
-| **Behavioral** (use & flow) | Navigation, feedback, state transitions, gesture ergonomics | `NavigationBar`, `HapticFeedback`, `AnimatedSwitcher`, loading/empty/error states | Works fine, feels cold |
-| **Reflective** (meaning & memory) | Identity, storytelling, shareability, trust | `EmptyState`, `OnboardingFlow`, `MilestoneCelebration`, `ShareCard` | Story without substance |
+Do not confuse high non-genericity with visual noise. A quiet app can score high through precise typography, language, interaction, and state design.
 
-**Emotional Stance → Flutter Tokens:**
+### 4. Lock the Design Bible
 
-| Stance | Visceral (Tokens) | Behavioral (Interaction) | Reflective (Copy/State) |
-|--------|------------------|------------------------|------------------------|
-| Calming | Soft palette, organic shapes, slow spring (stiffness 100) | Gentle transitions, no harsh errors | "Take your time" copy, breathing room in layouts |
-| Encouraging | Warm accent, progress glow, soft shadows | Micro-celebrations, streak-aware feedback | "You're building a habit" reflection in empty states |
-| Precise | High contrast, geometric, crisp spring (stiffness 300) | Instant feedback, keyboard shortcuts, undo | "You're in control" transparency in settings |
-| Playful | Bright palette, bounce spring (damping 12), surprise | Drag-to-discover, haptic rewards | "You discovered X" shareable moments |
-| Protective | Muted safe colors, clear boundaries, firm touch targets | Explicit confirmations, undo everywhere | "Your data stays yours" trust signals |
+Write a compact source of truth before code. For an existing app, record what is preserved and what changes.
 
-**Anti-Slop:** All three levels must be intentional and consistent. Visceral-only = decoration. Behavioral-only = cold. Reflective-only = hollow. Disconnected = emotionally incoherent.
+- **Product truth:** core job, real content, primary action
+- **Platform stance:** iOS-native, Android-native, or shared identity with adaptive behavior
+- **Emotional stance:** calm, encouraging, precise, protective, playful, candid, or another specific posture
+- **Product world:** a concrete metaphor or cultural/material vocabulary
+- **Hierarchy:** first read, second read, quiet information, dominant action
+- **Palette:** surface family, semantic roles, accent rule, light/dark strategy
+- **Typography:** families, role scale, line measure, numeral treatment, text-scaling behavior
+- **Shape and surface:** radius logic, borders, elevation, texture, materiality
+- **Icon and asset language:** icon family, photography, illustration, 3D, texture, or custom-painted motifs
+- **Motion language:** spatial model, curves or springs, gesture coupling, choreography, reduced-motion behavior
+- **Navigation:** top-level destinations, back behavior, deep links, restoration
+- **State design:** loading, empty, error, offline, permission, disabled, pressed, selected, success, long text
+- **Performance budget:** expensive layers, image sizes, shader or blur use, target devices, profiling plan
 
-> **Validator:** For each screen in the plan, name the visceral, behavioral, and reflective choices. If any level is unplanned, fix before implementation.
+Lock one signature idea that belongs to this product. It may be a transition, data representation, composition rule, tactile gesture, image treatment, or typographic behavior. Do not spread five signature effects across one screen.
 
-For deeper emotional design reading, optionally read `references/emotional-design-framework.md`.
+For an unfamiliar or highly visual product world, decide whether one to three image concepts would materially improve composition, asset language, or atmosphere before coding. This is optional, not a ritual for every app or screen. Treat generated concepts as art-direction evidence: extract palette, hierarchy, material, asset, and motion cues, then rebuild the interface with real Flutter constraints, readable text, native controls, and complete states. Never treat generated UI text or geometry as production truth.
 
-### 4. Define the Design Token Architecture
+### 5. Map the Flow and Motion Score
 
-Three-tier structure. **ZERO raw values in widget code.**
+Plan the screen tree and state transitions before decorating individual widgets.
 
-```
-lib/ui/core/tokens/
-  primitives/       # Raw values: neutral-0..1000, brand-50..900, spacing-0..24, radius-sm/md/lg, duration-fast/medium/slow
-  semantic/         # Context-aware: surfaceBase, accentPrimary, textBody, spaceCardPadding, motionFast
-  component/        # Component-scoped: button-tokens, card-tokens, input-tokens, navigation-tokens
-```
+For every important transition, record:
 
-**BANNED in widget code:**
-- `Color(0xFF…)` outside theme definitions → use `Theme.of(context).colorScheme.*`
-- `EdgeInsets.all(N)` outside spacing tokens → use `Spacing.md`, `Spacing.lg`
-- `BorderRadius.circular(N)` outside radius tokens → use `RadiusTokens.md`
-- `LinearGradient(...)` outside theme extensions → define in `ThemeExtension`
-- Magic number durations → use `AppDurations.fast`, `AppDurations.medium`
+`trigger -> source state -> destination state -> continuity element -> motion purpose -> interruption behavior -> reduced-motion result`
 
-**Platform adaptation:**
-- Radius: M3 prefers 16dp, iOS prefers 12dp → adapt via `ThemeData` per platform
-- Navigation: `NavigationBar` on Android → `CupertinoTabBar` on iOS → `NavigationRail` on tablet
-- Spacing: iOS can be tighter (44pt touch targets) vs Android (48dp)
+Classify motion by purpose:
 
-For full token pipeline with code generation, optionally read `references/design-token-architecture.md`.
+- **Orientation:** explain where content came from or went.
+- **Continuity:** preserve an object, image, or selection across a transition.
+- **Feedback:** acknowledge touch, drag, completion, or failure.
+- **State:** explain a change in data or mode.
+- **Story:** pace a rare narrative or celebratory moment.
 
-### 5. Run the Anti-AI-Slop Registry
+If an animation has no purpose in this list, remove it. Read `references/motion-and-scroll.md` for implementation patterns.
 
-**ZERO VIOLATIONS required before delivery.** All 16 patterns must be clean.
+### 6. Translate Web-Level Choreography Into Mobile Behavior
 
-| # | Pattern | BANNED Signal | Required Fix |
-|---|---------|---------------|-------------|
-| 1 | Purple-blue default gradient | `LinearGradient(Colors.purple, Colors.blue)` literal | Derive from `ColorScheme.fromSeed(seedColor: brandHex)` |
-| 2 | Fake dashboard chart spam | `Random()` data in `fl_chart` / `charts_flutter` | `sealed class ChartData { Loading, Empty, Error, Loaded }` with real source |
-| 3 | Repeated onboarding slides | 3 identical `PageView` slides + "Skip" + "Get Started" | Zero slides preferred; just-in-time permission/personalization |
-| 4 | Pill / badge clutter | 5+ colored `Chip`s in `Wrap`; badges on every icon | Max 3–4 per row; `FilterChip` for interaction; single accent color |
-| 5 | Generic line icons | `Icon(Icons.*)` for brand-specific features | Custom `IconData` font for product concepts |
-| 6 | Nested cards | `Card` descendant of another `Card` | Single surface with `Divider` / `Padding` sections |
-| 7 | Random glassmorphism | `BackdropFilter` + `ImageFilter.blur` with no perf budget | `surfaceContainerHighest.withOpacity()`; blur only if budget allows |
-| 8 | Template names | `Acme`, `Nova`, `Flow`, `Nexus`, `Smart`, `Pulse`, `Vibe` | `--dart-define` or `{PLACEHOLDER}` + TODO |
-| 9 | AI marketing copy | "elevate", "unlock", "seamless", "next-gen", "revolutionize" | Specific, measurable value proposition per screen |
-| 10 | Fake-precision metrics | `Text('87.4%')` static string literal | `ValueListenableBuilder` / `StreamBuilder` bound to real data |
-| 11 | Generic Material Scaffold | `Scaffold → AppBar → ListView` on every screen | Navigation shell (`TabBar` / `NavRail` / `Drawer`) defined before content |
-| 12 | Hardcoded spacing / colors | `EdgeInsets.all(N)` / `Color(0xFF…)` in widget build | Theme tokens everywhere; `Spacing` / `ColorScheme` references |
-| 13 | Inconsistent border radius | `BorderRadius.circular(8)` in one file, `circular(16)` in another | 3–4 radius token values: `RadiusTokens.sm/md/lg` |
-| 14 | Infinite shimmer / loops | `.repeat()` without condition to stop | Stop on content arrival; check `MediaQuery.disableAnimations` |
-| 15 | Hidden route transitions | Fade-only >500ms with no directional clue | Platform-native routes (`CupertinoPageRoute` / `MaterialPageRoute`) ≤300ms |
-| 16 | Physics mismatch | `BouncingScrollPhysics` on finance; default on value-sensitive apps | `AppScrollPhysics.precise` for tools/finance; `playful` for social/wellness |
+Borrow the ambition of excellent interactive websites, not their input model.
 
-> **Validator:** Scan generated widget code for each of the 16 patterns. If any match (purple gradient, nested Card, fake metrics, etc.), fix before proceeding to the next step. Re-run after every fix.
+- Replace scroll hijacking with native `Scrollable` or `PageView` progress.
+- Replace hover reveals with touch-down, focus, selection, or viewport-entry feedback.
+- Replace long pinned sections with bounded sliver transformations, paged chapters, or a short immersive scene.
+- Couple drag progress directly to visual progress, then settle with a spring or curve.
+- Preserve back gestures, safe areas, text scaling, and reachable controls.
+- Keep body text and primary controls stable while decorative layers create depth.
 
-For full code examples, `custom_lint` rules, and CI hooks, optionally read `references/anti-ai-slop-registry.md`.
+Do not turn every screen into a spectacle. Reserve the strongest choreography for moments with narrative or product meaning.
 
-### 6. Design Motion with Intent
+### 7. Choose the Lowest Sufficient Motion Tool
 
-Every animation must map to exactly one of these five categories. No decorative animation.
+Use this ladder:
 
-| Category | Purpose | Max Duration | Spring (mass:1) | Flutter | Reduced Motion |
-|----------|---------|-------------|-----------------|---------|---------------|
-| **Navigational** | Spatial relationships (push/pop, tab, sheet, shared element) | 300ms | stiffness:210, damping:20 | `Hero`, `PageRouteBuilder`, `AnimatedSwitcher` shared-axis | Skip entirely |
-| **Feedback** | Confirm action received (press, toggle, swipe, haptic) | 150ms | damping:15 | `HapticFeedback`, `InkWell`, `AnimatedContainer` | `Duration.zero` |
-| **State Transition** | Data/state change (loading→success, empty→populated) | 250ms | stiffness:180 | `AnimatedSwitcher`, `TweenAnimationBuilder`, `AnimatedCrossFade` | Fade only |
-| **Emotional** | Narrative reveal (onboarding, celebration, empty-state delight) | 400–600ms | Custom choreography, staggered | `StaggeredAnimation`, `flutter_animate` chains, Lottie/Rive | Static end state only |
-| **Brand** | Signature moment (splash, logo, micro-interaction) | <2000ms (one-time) | Brand-specific | `CustomPainter` animation, Rive animation | Skip entirely |
+1. Built-in component motion and implicit widgets for simple state changes.
+2. `AnimatedSwitcher`, `TweenAnimationBuilder`, transition widgets, `Hero`, and `AnimationStyle` for coordinated transitions.
+3. `AnimationController`, `AnimatedBuilder`, `Listenable`, `Interval`, and physics simulations for gesture-coupled or multi-property choreography.
+4. `Flow`, slivers, `CustomPainter`, `CustomClipper`, and custom render objects for paint- or layout-phase effects.
+5. `FragmentProgram`, Rive, Lottie, particles, or 3D only when the visual concept requires them and the result can be profiled and given a reduced-motion fallback.
 
-**Spring Physics Reference:**
+Prefer transform and opacity for frequent animation, but do not repeat web compositor folklore as a Flutter law. Measure Flutter's UI and raster work in profile mode. Use `RepaintBoundary` only where repaint isolation helps, not as ritual wrapping.
 
-| Feeling | Stiffness | Damping | Use Case |
-|---------|-----------|---------|----------|
-| Crisp / Snappy | 300 | 25 | Finance, tools, precise interactions |
-| Standard | 210 | 20 | Default spring, general UI |
-| Soft / Bouncy | 150 | 12 | Social, wellness, creative |
-| Loose / Expressive | 100 | 8 | Onboarding, celebration, brand moments |
+### 8. Build the Art Layer Into the Architecture
 
-**Choreography Rules:**
-- Max 2 concurrent motions per screen
-- Stagger children: `delay = index × 50ms`
-- Parent completes before children begin
-- Exit animations run in parallel (fast)
-- `.repeat()` BANNED without a condition to stop
-- Always check: `MediaQuery.of(context).disableAnimations`
-- Pattern: `final duration = disableAnimations ? Duration.zero : AppMotion.medium.duration`
+Respect the repository's established state-management and navigation choices. Do not replace them for aesthetic reasons.
 
-> **Validator:** Run a motion audit on every animated widget. Does it have an intent category? Max duration respected? Reduced-motion fallback? Spring physics match brand persona? Fix violations before proceeding.
+Keep visual concerns discoverable:
 
-For choreography patterns and advanced spring use, optionally read `references/motion-with-intent.md`.
-
-### 7. Apply Spatial Mobile Design
-
-Read `references/spatial-mobile-design.md`. Depth communicates hierarchy, not decoration:
-- Layered surfaces with meaningful elevation (0–5 levels max)
-- Glass/blur as focus indicator, not background texture
-- Parallax and 3D transforms for spatial relationships
-- `CustomPaint` for product-specific depth metaphors
-
-### 8. Implement Adaptive Theming
-
-Read `references/adaptive-theming.md` and `references/material-3-expressive.md`:
-- Dynamic Color (Material You) on Android 12+; semantic seed on iOS/web
-- Platform-adaptive surfaces: tinted on Android, monochrome on iOS
-- Semantic color roles — never raw brand colors in widgets
-- Component themes use `ComponentThemeData` with semantic tokens
-
-### 9. Design Gesture-First Navigation
-
-Read `references/gesture-first-navigation.md`:
-- Swipe-back on iOS, predictive back on Android 14+
-- Drag-to-reorder, swipe-to-dismiss, long-press drag
-- Always provide button/tab alternatives for accessibility
-
-### 10. Enforce Accessibility Gates
-
-Read `references/accessibility-gates.md`. CI-blocking, not afterthoughts:
-- [ ] Reduced motion respected (`MediaQuery.disableAnimations` checked on every animated widget)
-- [ ] Dynamic Type / text scaling to 200% without clipping
-- [ ] VoiceOver / TalkBack semantics on all interactive elements
-- [ ] 4.5:1 contrast minimum (7:1 for small text)
-- [ ] 44×44pt (iOS) / 48×48dp (Android) touch targets
-- [ ] Semantic labels for icon-only buttons, images, charts
-
-> **Validator:** Run Flutter's built-in accessibility scanner (`flutter run --profile` → accessibility menu). Fix all contrast, touch-target, and semantics violations. Re-scan after fix.
-
-### 11. Make the Design System AI-Ready
-
-Read `references/ai-ready-design-system.md`:
-- Export tokens as JSON for MCP servers
-- Generate component registry with props, states, usage examples
-- Version tokens and components alongside code
-
-### 12. Align with Platform Conventions
-
-Read `references/apple-design-awards-2025.md` and `references/material-3-expressive.md`:
-- iOS: HIG navigation, safe areas, Dynamic Type, SF Symbols, haptics
-- Android: Material 3 Expressive shapes, spring motion, predictive back, edge-to-edge
-- Cross-platform: Platform-adaptive components — compose, don't copy
-
-### 13. Use Flutter Architecture Without Losing the Art
-
-Complement official Flutter guidance instead of duplicating it. Follow the Flutter team's recommended layered architecture (UI → Logic → Data) with MVVM pattern using `ChangeNotifier` + `ListenableBuilder`.
-
-#### Responsive Layout Rules
-- Use `LayoutBuilder` and `MediaQuery.sizeOf(context)` for layout — **never** `MediaQuery.orientationOf` or `OrientationBuilder` near the root (orientation doesn't reflect available window space on foldables or multi-window)
-- **Never** check hardware types (`Platform.isAndroid`, `isPhone`, `isTablet`) — Flutter runs in resizable windows, multi-window mode, and picture-in-picture. Base all layout decisions on available space via `constraints.maxWidth`
-- Use `Expanded`/`Flexible` for distributing space in `Row`/`Column`; use `ConstrainedBox(maxWidth: ...)` + `Center` to prevent content from stretching on large screens
-- Use `LayoutBuilder` breakpoints: `> 600` for tablet/desktop layout, `<= 600` for phone layout
-
-#### Navigation & Deep Linking
-- Use `go_router` with `MaterialApp.router` and `usePathUrlStrategy()` for clean web URLs
-- Use `StatefulShellRoute.indexedStack` for persistent navigation shells with tab state preservation
-- Configure deep linking per platform:
-  - **Android**: `AndroidManifest.xml` intent filter + `assetlinks.json` at `/.well-known/`
-  - **iOS**: `Info.plist` `FlutterDeepLinkingEnabled=true` + `Runner.entitlements` associated domains + `apple-app-site-association` at `/.well-known/`
-
-#### Architecture Structure
-
-```
-lib/
-  data/
-    models/        # API models (fromJson/toJson)
-    repositories/  # Repository pattern — single source of truth
-    services/      # API clients, local DB wrappers
-  domain/          # Optional — only for complex cross-repository logic
-    models/        # Clean domain models (immutable, freezed)
-    use_cases/     # Business logic classes
-  ui/
-    core/
-      theme/       # ThemeData, ColorScheme, ThemeExtension
-      typography/  # TextTheme, Google Fonts config
-      motion/      # Spring definitions, duration tokens
-      assets/      # flutter_gen asset constants
-      widgets/     # Shared/reusable widgets
-      tokens/      # Primitives → Semantic → Component tokens
-    features/
-      feature_name/
-        view_models/  # ChangeNotifier exposing immutable state
-        views/        # Lean widgets, ListenableBuilder for VM binding
-        widgets/      # Feature-specific widgets
+```text
+lib/ui/core/
+  theme/        semantic colors, type, component themes
+  tokens/       repeated spacing, radii, durations, motion curves
+  motion/       shared transitions, simulations, reduced-motion policy
+  assets/       typed asset access and image treatment
+  widgets/      genuinely shared visual primitives
+lib/ui/features/<feature>/
+  views/        screen composition
+  widgets/      product-specific pieces
+  view_models/  only when the app architecture uses them
 ```
 
-#### MVVM Code Pattern (Official Flutter Recommendation)
+Name widgets after product meaning, such as `RecoveryArc`, `ReflectionPrompt`, or `ArtifactChapter`, rather than `FancyCard` or `InfoTile`.
 
-```dart
-// 1. Service — raw API interaction
-class ApiClient {
-  Future<UserApiModel> fetchUser(String id) async { /* HTTP GET */ }
-}
+### 9. Implement Complete States
 
-// 2. Repository — single source of truth, returns domain model
-class UserRepository {
-  UserRepository({required ApiClient apiClient}) : _apiClient = apiClient;
-  final ApiClient _apiClient;
-  User? _cachedUser;
+Design the unsuccessful and transitional states with the same authorship as the loaded state.
 
-  Future<User> getUser(String id) async {
-    if (_cachedUser != null) return _cachedUser!;
-    final apiModel = await _apiClient.fetchUser(id);
-    _cachedUser = User(id: apiModel.id, name: apiModel.fullName);
-    return _cachedUser!;
-  }
-}
+- Match skeleton geometry to final content and stop it when content arrives.
+- Make empty states explain what happened and what action is available.
+- Keep errors local when possible and provide recovery.
+- Preserve drafts and confirm destructive dismissals where loss is possible.
+- Test realistic long names, localized strings, large text, sparse data, and extreme values.
+- Make press, focus, hover-on-desktop, selected, disabled, drag, and loading states visually stable.
 
-// 3. ViewModel — exposes immutable state via ChangeNotifier
-class ProfileViewModel extends ChangeNotifier {
-  ProfileViewModel({required UserRepository userRepository})
-      : _userRepository = userRepository;
-  final UserRepository _userRepository;
+### 10. Run the Authorship Test
 
-  User? _user;
-  User? get user => _user;
-  bool _isLoading = false;
-  bool get isLoading => _isLoading;
+Before visual QA, ask:
 
-  Future<void> loadProfile(String id) async {
-    _isLoading = true;
-    notifyListeners();
-    try {
-      _user = await _userRepository.getUser(id);
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
-  }
-}
+- Could this screen belong to five unrelated apps after changing the logo?
+- Is the composition driven by product content or by a favorite template?
+- Does every card, pill, gradient, blur, chart, and animation have a job?
+- Is there one recognizable signature idea rather than many decorative tricks?
+- Does the copy sound like this product and audience?
+- Are references visible only as principles, not copied layouts or branding?
 
-// 4. View — lean, no logic, binds to ViewModel via ListenableBuilder
-class ProfileView extends StatelessWidget {
-  const ProfileView({super.key, required this.viewModel});
-  final ProfileViewModel viewModel;
+If the answer exposes genericity, revise the underlying design decision rather than adding more decoration.
 
-  @override
-  Widget build(BuildContext context) {
-    return ListenableBuilder(
-      listenable: viewModel,
-      builder: (context, _) {
-        if (viewModel.isLoading) return const Center(child: CircularProgressIndicator());
-        final user = viewModel.user;
-        if (user == null) return const Center(child: Text('User not found'));
-        return Column(children: [Text(user.name)]);
-      },
-    );
-  }
-}
-```
+### 11. Verify in Rendered Output
 
-When translating the Design Bible into code, optionally read `references/flutter-implementation-playbook.md`.
+For visual work, use the best available loop:
 
-### 14. Use Image Concepts Selectively
+1. Create focused widget previews when the project supports Flutter 3.35+ preview tooling; remember the previewer remains experimental.
+2. Capture screenshots on at least one small phone and one representative target device.
+3. Exercise light/dark or high-contrast modes that the app supports, large text, reduced motion, loading, empty, and error states.
+4. Check motion on a real device or simulator in profile mode when it is important to the experience.
+5. Run accessibility guideline tests and screen-reader inspection for custom controls.
+6. Run `scripts/audit_flutter_ui.py <project-root>` as a warning pass, then inspect every finding in context.
 
-Image concepts are optional, not mandatory. Use when the app is highly visual, immersive, brand-led, editorial, consumer, cultural, wellness, education, travel, commerce, social, or otherwise likely to benefit from visual source-of-truth before coding.
+Read `references/anti-slop-and-qa.md` for the delivery gate.
 
-Skip for small utilitarian changes, bug fixes, or existing UI systems where the visual language is already fixed.
+## Anti-Slop Signals
 
-## BANNED Patterns
+Treat these as review signals, not blind keyword bans:
 
-These are **zero-tolerance** patterns. If any appear in generated code, fix before delivery.
+- default purple-blue gradient with no brand reason
+- a phone screen composed like a website landing-page hero
+- identical cards repeated as the only layout grammar
+- nested elevated surfaces and decorative glass everywhere
+- pills, badges, status dots, and tiny uppercase labels used as filler
+- generic icons for product-specific concepts or mixed icon families
+- fake charts, precision, streaks, social proof, or invented user data
+- three cloned onboarding slides
+- copy built from "unlock", "elevate", "seamless", or similar empty claims
+- motion on every mount, infinite loops, or delayed access to controls
+- custom platform behavior that feels worse than Flutter's built-in adaptation
+- a design system so rigid that bespoke illustration geometry becomes unreadable token indirection
 
-### App-native screens
-- **BANNED**: Website heroes inside phone screens (full-width hero images with text overlay and CTA button).
-- **BANNED**: Ignoring safe areas, status regions, bottom navigation/home-indicator regions, gesture zones.
-- **BANNED**: Same `Scaffold → AppBar → ListView` structure on every screen. Define a navigation shell first.
-- **BANNED**: First screens that are cluttered, dense, or lack visual hierarchy.
+## Delivery Gate
 
-### Product-world specificity
-- **BANNED**: Generic widget names like `HomeCard`, `InfoBox`, `FeatureTile`. Use product-specific names: `ReflectionPromptCard`, `RecoveryRangeChart`, `TripStatusSheet`.
-- **BANNED**: Mixing icon styles (Material + Cupertino + custom) in the same screen. Pick one system and use it everywhere.
-- **BANNED**: Placeholder assets or illustrations that don't belong to the product world. If no asset exists, design with typography and spacing until assets are created.
+Do not call visual work complete until the relevant items pass:
 
-### Controlled richness
-- **BANNED**: Nested cards (`Card` inside `Card` with elevation on both).
-- **BANNED**: Random glassmorphism (`BackdropFilter` on every background).
-- **BANNED**: Decorative pills, badges, and chips that serve no interactive purpose.
-- **BANNED**: Fake chart dashboards with `Random()` data.
-- **BANNED**: Unreadable small text below 11sp body / 10sp caption on mobile.
-- **BANNED**: Motion without intent category (every animation must map to 1 of 5 categories above).
-- **BANNED**: Infinite shimmer / spinner loops that continue after content loads.
-
-### Token violations
-- **BANNED**: `Color(0xFF…)` outside theme definitions.
-- **BANNED**: `EdgeInsets.all(N)` outside spacing tokens.
-- **BANNED**: `BorderRadius.circular(N)` outside radius tokens.
-- **BANNED**: `LinearGradient(Colors.purple, Colors.blue)` literal in widget code.
-- **BANNED**: Raw duration literals (`Duration(milliseconds: 300)`) outside motion tokens.
-
-### AI tells
-- **BANNED**: Template names `Acme`, `Nova`, `Flow`, `Nexus`, `Smart`, `Pulse`, `Vibe`, `Apex`, `Zenith`, `Vertex`, `Stratus`, `Lumina` in any app string.
-- **BANNED**: Marketing copy: "elevate", "unlock", "seamless", "next-gen", "revolutionize", "game-changer", "empower", "supercharge", "harness", "delve", "navigate", "reimagine", "streamline".
-- **BANNED**: Fake-precision metrics: `Text('87.4%')` — any percentage in a string literal must come from a state variable.
-- **BANNED**: Three identical onboarding slides with only icon/headline/body varying.
-- **BANNED**: Default purple-blue gradient unless the brand explicitly uses those hues.
-
-## Honesty Rules
-
-Use what Flutter gives you. Never recreate a framework feature:
-
-- Use `NavigationBar` / `NavigationRail` / `CupertinoTabBar` — don't build bottom nav from scratch with `GestureDetector` + `Stack`
-- Use `Hero` for shared element transitions — don't build custom hero with `AnimatedBuilder` + `Overlay`
-- Use `ThemeData` with `ColorScheme.fromSeed` — don't write global color maps in a `constants.dart`
-- Use `AnimatedSwitcher` / `AnimatedList` / `AnimatedCrossFade` for layout transitions — don't write manual `AnimationController` for simple state swaps
-- Use `Form` with `FormState.validate()` — don't write per-field validation with boolean flags
-- Use `MediaQuery.sizeOf(context)` / `LayoutBuilder` for responsive layout — don't check `Platform.isAndroid` to decide width
-- Use `Sliver*` family for scrollable heterogeneous layouts — don't nest `ListView` + `Column` + `SingleChildScrollView`
-- Use `StreamBuilder` / `FutureBuilder` for async state — don't fire-and-forget with `Timer.periodic` polling
-- Use `flutter_gen` for asset constants — don't hardcode `'assets/images/icon.png'` strings
-- Use `FocusScope` / `FocusTraversalGroup` for keyboard navigation — don't guess `Tab` order with manual focus nodes
-- Use `RefreshIndicator` for pull-to-refresh — don't build gesture-based refresh with `GestureDetector` + `ScrollController`
-- Use the platform-appropriate scroll physics: `BouncingScrollPhysics` for social/wellness, `ClampingScrollPhysics` for finance/tools
-- When a package exists and is maintained, use it: `fl_chart` for charts, `go_router` for nav, `flutter_animate` for motion, `riverpod` for state
-
-## Workflow Summary
-
-```
-┌─────────────────────────────────────────────────────┐
-│ 0. Pre-Code Ritual                                  │
-│    Roll dials → Print design read → Lock packages   │
-│    → Plan screen tree                               │
-├─────────────────────────────────────────────────────┤
-│ 1. Read the brief    2. Lock the Design Bible        │
-├─────────────────────────────────────────────────────┤
-│ 3. Emotional Design  4. Token Architecture           │
-│ 5. Anti-Slop Registry 6. Motion with Intent          │
-├─────────────────────────────────────────────────────┤
-│ 7. Spatial Design    8. Adaptive Theming             │
-│ 9. Gesture Nav       10. Accessibility Gates         │
-│ 11. AI-Ready System  12. Platform Alignment          │
-├─────────────────────────────────────────────────────┤
-│ 13. Architecture Integration                         │
-│ 14. Image Concepts (optional)                        │
-├─────────────────────────────────────────────────────┤
-│ QA Gate: Visual check + all 16 slop patterns clean   │
-└─────────────────────────────────────────────────────┘
-```
-
-## Visual QA Gate
-
-Before delivery, verify every relevant item. If one fails, fix before final output.
-
-- Design Read declared.
-- Design Bible locked and visible in implementation choices.
-- Dials chosen and reflected in the UI.
-- Screen feels app-native, not web-in-phone.
-- Product world is specific and not copied from a reference app.
-- Emotional stance reflected in copy, state design, color, motion, and hierarchy.
-- All three emotional levels (visceral, behavioral, reflective) are intentional.
-- Material / Cupertino components are themed or composed into the product identity.
-- Safe areas, status region, bottom region, and gestures are respected.
-- Text is comfortably readable on small phones.
-- Touch targets are practical, generally 44–48 logical pixels or larger for primary controls.
-- Layout adapts with constraints, not device-name guesses.
-- No overflow stripes, clipped text, unbounded scrollables, or unstable layout.
-- Loading, empty, error, permission, selected, pressed, and long-text states are present where relevant.
-- Motion is motivated by hierarchy, storytelling, feedback, or state transition.
-- Reduced-motion fallback exists for every animated element.
-- Each animated element maps to exactly 1 of 5 motion intent categories.
-- Palette, type, icon, radius, spacing, and surface logic remain consistent.
-- Screens in a flow vary in composition without drifting into another design system.
-- Any visual assets are purposeful, correctly framed, and consistent.
-- **ZERO anti-ai-slop violations** (all 16 patterns pass).
-- **ZERO raw values in widgets** (all colors, spacing, radius, durations via tokens).
-- **ZERO template names, marketing copy, fake metrics.**
-- **ZERO infinite loops, hidden route transitions, physics mismatches.**
-- **BANNED patterns list checked.**
-- **Honesty rules applied** — no recreated framework features.
-- Design tokens used: primitives → semantic → component chain verified.
-- Gravity/motion physics match brand persona + platform convention.
-- Spatial depth communicates hierarchy, not decoration.
-- Adaptive theming tested (Dynamic Color, platform surfaces, light/dark).
-- Gestures discoverable and button alternatives present.
-- Accessibility gates pass (reduced motion, 200% text, VoiceOver/TalkBack, contrast, touch targets).
-- Design system exports exist for AI context (MCP/JSON) when applicable.
-- Platform conventions respected (HIG / M3 Expressive) without losing product identity.
-- Package map honored — used recommended packages instead of recreating features.
-- Widget previews, screenshots, simulator/device checks, or visual tests were used for visual work.
-
-## Example Responses
-
-### Cultural learning app
-
-`Flutter Design Read: immersive culture app for curious learners, cross-platform premium neutral, with a museum-field-notes product world and a calm sense of discovery.`
-
-Use layered imagery, textured backgrounds, artifact-specific navigation, timeline/detail flow, and motion that reveals content like exploration.
-
-### Journaling app
-
-`Flutter Design Read: private journaling app for emotionally overloaded users, iOS-native premium, with a soft guided-reflection world and a reassuring emotional stance.`
-
-Use calm onboarding, readable prompts, soft transitions, careful empty states, and visual warmth without fake positivity.
-
-### Fitness or health app
-
-`Flutter Design Read: health tracking app for everyday users, cross-platform premium neutral, with a humane coaching world and a non-punitive stance toward data.`
-
-Use approachable metrics, recovery-aware states, clear charts, encouraging microcopy, and no shame-driven streak pressure.
+- Design Read, dials, Design Bible, signature idea, and motion score exist.
+- The result fits the current product and preserves existing decisions that were not in scope.
+- The primary action and hierarchy remain clear without animation.
+- Navigation, back behavior, scrolling, system bars, keyboard, and safe areas feel app-native.
+- Loading, empty, error, permission, pressed, selected, disabled, and long-content states are handled where relevant.
+- Text remains usable at large system scales; touch targets, contrast, semantics, and focus order are verified.
+- Reduced motion preserves meaning and access.
+- Images are correctly sized and cropped; expensive blur, clipping, opacity, shaders, and particles are profiled where used.
+- Motion is responsive to input, cancellable where appropriate, and free of obvious jank in profile mode.
+- Screenshots or previews were inspected, not merely generated.
+- The anti-slop signals and authorship test were reviewed in context.
