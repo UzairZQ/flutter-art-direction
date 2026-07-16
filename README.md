@@ -1,5 +1,7 @@
 # Flutter Art Direction
 
+[![skills.sh](https://skills.sh/b/UzairZQ/flutter-art-direction)](https://skills.sh/UzairZQ/flutter-art-direction/flutter-art-direction)
+
 An agent-agnostic skill for designing and implementing Flutter apps that feel authored, app-native, emotionally intentional, and visually distinct.
 
 The skill is reference-inspired, not app-copying. It combines product-specific art direction with Flutter-native motion, adaptive behavior, accessibility, rendering discipline, and screenshot-based QA.
@@ -42,6 +44,16 @@ evals/
 `SKILL.md` stays portable across Codex, Claude, and other skill-compatible agents. `agents/openai.yaml` is optional Codex metadata.
 
 ## Install
+
+### skills.sh
+
+Install with the cross-agent `skills` CLI:
+
+```bash
+npx skills add UzairZQ/flutter-art-direction --skill flutter-art-direction
+```
+
+View the public listing at [skills.sh/UzairZQ/flutter-art-direction/flutter-art-direction](https://skills.sh/UzairZQ/flutter-art-direction/flutter-art-direction).
 
 ### Codex
 
