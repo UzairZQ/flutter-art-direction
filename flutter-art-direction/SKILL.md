@@ -1,6 +1,6 @@
 ---
 name: flutter-art-direction
-description: Design, build, review, or refine authored Flutter interfaces and motion systems. Use for Flutter screens, flows, themes, visual systems, responsive app UI, interaction design, animation, CustomPaint or shader effects, visual QA, and redesigns that must avoid generic AI-generated aesthetics. Do not use for backend-only or non-visual Flutter work.
+description: Design, concept, build, review, or refine authored Flutter interfaces, multi-screen mobile flows, visual systems, and motion. Use for Flutter UI implementation, image-led mobile concepts, themes, responsive app UI, interaction design, animation, CustomPaint or shader effects, visual QA, and redesigns that must avoid generic AI-generated aesthetics. Do not use for backend-only or non-visual Flutter work.
 ---
 
 # Flutter Art Direction
@@ -14,6 +14,7 @@ Do not copy a reference app. Extract its design logic, then make choices specifi
 Read only the references needed for the task:
 
 - Read `references/principle-bank.md` when choosing an art direction or interpreting app references.
+- Read `references/mobile-visual-direction.md` for image concepts, screen sets, platform mode, device framing, visual-variation choices, texture, imagery, multi-screen consistency, or prompt construction.
 - Read `references/motion-and-scroll.md` for immersive, gesture-driven, scroll-reactive, Hero, layered-asset, CustomPaint, shader, Rive, or Wonderous-like work.
 - Read `references/flutter-implementation-playbook.md` while translating a Design Bible into Flutter structure and widgets.
 - Read `references/flutter-2026.md` before using recent Flutter APIs or making version-dependent claims.
@@ -34,6 +35,7 @@ Use official Flutter skills for architecture, responsive layout, previews, tests
 - Never invent product data, testimonials, metrics, brand assets, or precision. Use real state, clearly labeled fixtures, or honest placeholders.
 - Verify visual work in rendered output. Code inspection alone is not visual QA.
 - Keep the visible process proportional. For implementation requests, state the Design Read and compact decisions, then build; do not turn the response into a design document unless the user asked for one.
+- Match the deliverable to the request: generate images for concept-only work, write Flutter for implementation work, and use concepts as evidence before implementation when both are requested. Do not substitute prose for a requested screen image or substitute an image for requested working UI.
 
 ## Workflow
 
@@ -48,6 +50,12 @@ Infer or inspect:
 - existing architecture, theme, components, assets, fonts, and packages
 - reference signals and what the user likes about them
 - trust, health, safety, accessibility, localization, or regulated constraints
+
+Choose the output mode before continuing:
+
+- **Concept:** generate screen images only; do not drift into code.
+- **Build:** implement and render Flutter; do not stop at a moodboard.
+- **Concept then build:** explore only enough to lock direction, then rebuild with Flutter-native constraints.
 
 Ask one focused question only when different answers would produce materially different directions. Otherwise state the assumption and proceed.
 
@@ -75,6 +83,10 @@ Choose integer values from 1 to 10 and explain unusual extremes:
 | `MOTION_INTENSITY` | nearly static | choreographed and physics-led |
 | `VISUAL_DENSITY` | sparse | operationally dense |
 | `NON_GENERICITY` | conventional | unmistakably product-specific |
+| `IMAGE_CREATIVITY` | imagery is incidental | imagery shapes the experience |
+| `TEXTURE_STRENGTH` | flat and pristine | tactile and atmospheric |
+| `SPACING_GENEROSITY` | compact | expansive and calm |
+| `CONSISTENCY_STRENGTH` | loosely related screens | one strict product system |
 
 Do not confuse high non-genericity with visual noise. A quiet app can score high through precise typography, language, interaction, and state design.
 
@@ -95,12 +107,28 @@ Write a compact source of truth before code. For an existing app, record what is
 - **Navigation:** top-level destinations, back behavior, deep links, restoration
 - **State design:** loading, empty, error, offline, permission, disabled, pressed, selected, success, long text
 - **Performance budget:** expensive layers, image sizes, shader or blur use, target devices, profiling plan
+- **Presentation contract:** raw screen, framed phone concept, screenshot, or flow board; device style, scale, outer margin, and background treatment
 
 Lock one signature idea that belongs to this product. It may be a transition, data representation, composition rule, tactile gesture, image treatment, or typographic behavior. Do not spread five signature effects across one screen.
 
-For an unfamiliar or highly visual product world, decide whether one to three image concepts would materially improve composition, asset language, or atmosphere before coding. This is optional, not a ritual for every app or screen. Treat generated concepts as art-direction evidence: extract palette, hierarchy, material, asset, and motion cues, then rebuild the interface with real Flutter constraints, readable text, native controls, and complete states. Never treat generated UI text or geometry as production truth.
+For concept or concept-then-build work, lock a visual-direction profile before generation: platform mode, theme paradigm, typography character, structure bias, image treatment, texture, palette logic, signature components, decorative assets, and motion-implied language. Read `references/mobile-visual-direction.md` and keep the profile stable across the set.
 
-### 5. Map the Flow and Motion Score
+For an unfamiliar or highly visual product world, decide whether image concepts would materially improve composition, asset language, or atmosphere before coding. Generate the requested screen count as separate readable images; add a fresh detail render only when it resolves a real ambiguity. Treat generated concepts as art-direction evidence: extract palette, hierarchy, material, asset, and motion cues, then rebuild the interface with real Flutter constraints, readable text, native controls, and complete states. Never trace generated UI text or impossible geometry into production.
+
+### 5. Lock the Screen System
+
+Before styling individual screens:
+
+- choose iOS-native, Android-native, or cross-platform premium behavior and do not mix patterns casually
+- map the logical screen order and state carried between screens
+- keep palette, type rhythm, spacing, radii, icon family, surface logic, device presentation, and navigation consistent
+- vary composition, density, image balance, and CTA placement so the flow is not a cloned template
+- keep the first screen focused on one primary read and one dominant action
+- use comfortably readable text; split content across screens before shrinking it
+- default to a subtle, evenly padded phone frame for presentation concepts, but use raw screens when the output is an implementation reference or the user asks for them
+- generate each requested screen directly; do not crop a small screen or detail out of a collage
+
+### 6. Map the Flow and Motion Score
 
 Plan the screen tree and state transitions before decorating individual widgets.
 
@@ -118,7 +146,7 @@ Classify motion by purpose:
 
 If an animation has no purpose in this list, remove it. Read `references/motion-and-scroll.md` for implementation patterns.
 
-### 6. Translate Web-Level Choreography Into Mobile Behavior
+### 7. Translate Web-Level Choreography Into Mobile Behavior
 
 Borrow the ambition of excellent interactive websites, not their input model.
 
@@ -131,7 +159,7 @@ Borrow the ambition of excellent interactive websites, not their input model.
 
 Do not turn every screen into a spectacle. Reserve the strongest choreography for moments with narrative or product meaning.
 
-### 7. Choose the Lowest Sufficient Motion Tool
+### 8. Choose the Lowest Sufficient Motion Tool
 
 Use this ladder:
 
@@ -143,7 +171,7 @@ Use this ladder:
 
 Prefer transform and opacity for frequent animation, but do not repeat web compositor folklore as a Flutter law. Measure Flutter's UI and raster work in profile mode. Use `RepaintBoundary` only where repaint isolation helps, not as ritual wrapping.
 
-### 8. Build the Art Layer Into the Architecture
+### 9. Build the Art Layer Into the Architecture
 
 Respect the repository's established state-management and navigation choices. Do not replace them for aesthetic reasons.
 
@@ -164,7 +192,7 @@ lib/ui/features/<feature>/
 
 Name widgets after product meaning, such as `RecoveryArc`, `ReflectionPrompt`, or `ArtifactChapter`, rather than `FancyCard` or `InfoTile`.
 
-### 9. Implement Complete States
+### 10. Implement Complete States
 
 Design the unsuccessful and transitional states with the same authorship as the loaded state.
 
@@ -175,7 +203,7 @@ Design the unsuccessful and transitional states with the same authorship as the 
 - Test realistic long names, localized strings, large text, sparse data, and extreme values.
 - Make press, focus, hover-on-desktop, selected, disabled, drag, and loading states visually stable.
 
-### 10. Run the Authorship Test
+### 11. Run the Authorship Test
 
 Before visual QA, ask:
 
@@ -185,10 +213,12 @@ Before visual QA, ask:
 - Is there one recognizable signature idea rather than many decorative tricks?
 - Does the copy sound like this product and audience?
 - Are references visible only as principles, not copied layouts or branding?
+- Does the first screen have a clear focal point, readable type, and believable safe areas?
+- Across a screen set, is variation intentional while the product identity and device presentation stay fixed?
 
 If the answer exposes genericity, revise the underlying design decision rather than adding more decoration.
 
-### 11. Verify in Rendered Output
+### 12. Verify in Rendered Output
 
 For visual work, use the best available loop:
 
@@ -198,6 +228,8 @@ For visual work, use the best available loop:
 4. Check motion on a real device or simulator in profile mode when it is important to the experience.
 5. Run accessibility guideline tests and screen-reader inspection for custom controls.
 6. Run `scripts/audit_flutter_ui.py <project-root>` as a warning pass, then inspect every finding in context.
+
+For generated concepts, inspect every image at thumbnail and full size. Regenerate a screen when the text is unreadable, device frame is uneven, navigation is implausible, palette drifts, image treatment weakens hierarchy, or the screen looks like a website or generic template. Do not repair a weak screen by cropping it from a larger board.
 
 Read `references/anti-slop-and-qa.md` for the delivery gate.
 
@@ -217,6 +249,10 @@ Treat these as review signals, not blind keyword bans:
 - motion on every mount, infinite loops, or delayed access to controls
 - custom platform behavior that feels worse than Flutter's built-in adaptation
 - a design system so rigid that bespoke illustration geometry becomes unreadable token indirection
+- tiny text used to fit an overfilled concept
+- inconsistent device frames, margins, icon weights, palettes, or navigation across a screen set
+- sterile flatness where the product world calls for material, image, or atmosphere
+- imagery, texture, stickers, or decorative marks added without a product or hierarchy role
 
 ## Delivery Gate
 
@@ -232,4 +268,5 @@ Do not call visual work complete until the relevant items pass:
 - Images are correctly sized and cropped; expensive blur, clipping, opacity, shaders, and particles are profiled where used.
 - Motion is responsive to input, cancellable where appropriate, and free of obvious jank in profile mode.
 - Screenshots or previews were inspected, not merely generated.
+- Requested concept screens were generated separately at readable scale, with consistent framing and a logical flow.
 - The anti-slop signals and authorship test were reviewed in context.

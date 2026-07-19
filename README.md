@@ -2,7 +2,7 @@
 
 [![skills.sh](https://skills.sh/b/UzairZQ/flutter-art-direction)](https://skills.sh/UzairZQ/flutter-art-direction/flutter-art-direction)
 
-An agent-agnostic skill for designing and implementing Flutter apps that feel authored, app-native, emotionally intentional, and visually distinct.
+An agent-agnostic skill for concepting, designing, implementing, and visually validating Flutter apps that feel authored, app-native, emotionally intentional, and distinct.
 
 The skill is reference-inspired, not app-copying. It combines product-specific art direction with Flutter-native motion, adaptive behavior, accessibility, rendering discipline, and screenshot-based QA.
 
@@ -12,6 +12,8 @@ Most Flutter skills answer how to structure, route, test, or fetch data. This sk
 
 - infer a visual and emotional direction from the real product
 - create a compact Design Bible and one ownable signature idea
+- choose a coherent platform mode and generate readable, consistent multi-screen mobile concepts when images are the requested deliverable
+- lock typography, palette, imagery, texture, iconography, spacing, device presentation, and screen-to-screen variation before a concept set drifts
 - translate ambitious web-style choreography into touch-first mobile behavior
 - apply layered scenes, direct gesture progress, Hero continuity, slivers, custom painting, shaders, Rive, or particles only when they serve the product
 - catch repeated AI defaults without banning legitimate styles
@@ -30,6 +32,7 @@ flutter-art-direction/
     anti-slop-and-qa.md
     flutter-2026.md
     flutter-implementation-playbook.md
+    mobile-visual-direction.md
     motion-and-scroll.md
     principle-bank.md
     source-notes.md
@@ -83,7 +86,7 @@ $flutter-art-direction Build a reflective journaling flow with a calm,
 non-judgmental stance and one tactile signature interaction.
 ```
 
-The agent should begin with a Flutter Design Read, dials, a Design Bible, a signature idea, and a motion score before implementation.
+The agent should begin with a Flutter Design Read, dials, a Design Bible, a signature idea, and a motion score. It then generates images, builds Flutter, or concepts before building according to the requested output mode.
 
 ## Static Audit
 
@@ -114,6 +117,9 @@ Use the prompts and rubric in `evals/` for forward tests after meaningful change
 - Accessibility and reduced motion as design inputs.
 - Profile expensive visuals on target hardware.
 - Rendered QA before claims of completion.
+- One coherent screen system with intentional variation across a flow.
+- Readable standalone concepts before compressed image boards.
+- Generated concepts as evidence, never as production geometry.
 
 ## License
 

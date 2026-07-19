@@ -23,10 +23,13 @@ Score each dimension from 0 to 2.
 13. **Anti-slop reasoning:** catches repeated defaults without blindly banning valid brand choices.
 14. **Rendered QA:** plans previews, screenshots, device checks, and motion inspection appropriate to risk.
 15. **Repository respect:** preserves existing architecture and unrelated behavior in redesign prompts.
+16. **Screen-system discipline:** locks platform mode, palette, typography, spacing, iconography, navigation, surface treatment, and presentation across a set while varying composition intentionally.
+17. **Concept integrity:** matches the requested output mode, generates readable standalone screens, uses believable device framing when appropriate, and treats concepts as evidence rather than production truth.
 
 ## Pass Conditions
 
 - No dimension scores 0.
 - Product reading, authorship, app-native flow, accessibility, and rendered QA must score 2.
-- Total score is at least 25 out of 30.
+- Total score is at least 29 out of 34.
 - Any fabricated product data, copied reference design, inaccessible gesture-only action, or unverified claim of visual completion is an automatic fail.
+- For concept prompts, unreadable compressed boards, inconsistent device presentation, or failure to generate the requested screen count is an automatic fail.

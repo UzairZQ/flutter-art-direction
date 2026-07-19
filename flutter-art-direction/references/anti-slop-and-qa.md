@@ -62,6 +62,19 @@ No single item proves poor quality. Repetition without product reasoning is the 
 - Empty space reflects hierarchy rather than accidental missing content.
 - Edge-to-edge media does not place text or controls under system UI.
 - A small phone does not become a squeezed desktop composition.
+- Text is comfortably readable without shrinking to preserve an overfilled layout.
+
+## Concept-Image QA
+
+For generated screen concepts:
+
+- Generate each requested screen at readable scale rather than as a tiny collage.
+- Keep device frame, scale, bezel, background, and outer margins consistent across the set.
+- Keep palette, type hierarchy, icon weight, radii, texture, navigation, and button hierarchy in one product system.
+- Let composition, density, imagery, and CTA placement vary enough that screens do not look cloned.
+- Inspect status bars, safe areas, navigation, keyboards, sheets, and home-indicator regions for believable mobile behavior.
+- Treat malformed text, impossible controls, generated device chrome, and accidental geometry as concept errors, not implementation instructions.
+- Regenerate weak screens directly; do not crop details out of a larger board to hide quality problems.
 
 ## Copy and Data QA
 
@@ -200,6 +213,7 @@ Use the smallest matrix that covers the feature risk.
 | Motion | normal plus reduced motion |
 | Content | realistic, long, sparse, and extreme values |
 | Platform | Android and iOS when behavior differs |
+| Concept presentation | raw screen or one consistent, evenly padded device frame |
 
 Inspect screenshots at full size and thumbnail size. Thumbnail inspection reveals hierarchy; full size reveals type, alignment, crop, and state polish.
 
@@ -218,6 +232,7 @@ The script flags code patterns that deserve review, including:
 - invented percentages and generic marketing copy
 - random data in UI code
 - repeated literal color and spacing usage
+- explicit type below 12 logical pixels, repeated large radii, and gradient-heavy files
 - animations without an obvious reduced-motion policy
 - controllers without local disposal
 - expensive rendering primitives
@@ -235,5 +250,6 @@ At handoff, state:
 - which tests and audits ran
 - whether motion was profiled on device
 - any unverified platform, asset, accessibility, or performance risk
+- for image concepts, the generation mode, prompt set or reusable direction, inspected screen count, and saved paths
 
 Do not claim a screen is production-ready when it was never rendered.

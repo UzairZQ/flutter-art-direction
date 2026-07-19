@@ -1,4 +1,4 @@
 interface:
   display_name: "Flutter Art Direction"
-  short_description: "Authored Flutter UI and motion systems"
-  default_prompt: "Use $flutter-art-direction to design and implement an authored Flutter flow with product-specific motion and rendered visual QA."
+  short_description: "Authored Flutter UI, concepts, and motion"
+  default_prompt: "Use $flutter-art-direction to concept or build an authored Flutter flow with a coherent mobile design system, product-specific motion, and rendered visual QA."

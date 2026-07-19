@@ -190,6 +190,27 @@ def scan_file(path: Path, root: Path) -> list[Finding]:
             message=f"{len(raw_spacing)} literal spacing declarations; check for a repeated spacing role.",
         )
 
+    tiny_text = list(
+        re.finditer(
+            r"\bfontSize\s*:\s*(?:[0-9](?:\.\d+)?|1[01](?:\.\d+)?)\b",
+            text,
+        )
+    )
+    if tiny_text:
+        add_finding(
+            findings,
+            rule="tiny-text-review",
+            severity="medium",
+            path=path,
+            root=root,
+            text=text,
+            offset=tiny_text[0].start(),
+            message=(
+                f"{len(tiny_text)} text style value(s) below 12 found; verify readability, "
+                "text scaling, and whether content should be simplified instead."
+            ),
+        )
+
     controller_match = re.search(
         r"(?:\bAnimationController\s*\(|"
         r"\b(?:late\s+)?(?:final\s+)?AnimationController\s+\w+)",
@@ -358,6 +379,42 @@ def scan_file(path: Path, root: Path) -> list[Finding]:
             text=text,
             offset=first_card.start(),
             message=f"{card_count} Card widgets in one file; verify that containment reflects real hierarchy.",
+        )
+
+    gradient_matches = list(
+        re.finditer(r"\b(?:LinearGradient|RadialGradient|SweepGradient)\s*\(", text)
+    )
+    if len(gradient_matches) >= 4:
+        add_finding(
+            findings,
+            rule="gradient-density-review",
+            severity="low",
+            path=path,
+            root=root,
+            text=text,
+            offset=gradient_matches[0].start(),
+            message=(
+                f"{len(gradient_matches)} gradients in one file; verify that each has a semantic or "
+                "product-world role rather than acting as generic polish."
+            ),
+        )
+
+    large_radius_matches = list(
+        re.finditer(r"\bBorderRadius\.circular\s*\(\s*(?:2[4-9]|[3-9]\d|\d{3,})(?:\.\d+)?\s*\)", text)
+    )
+    if len(large_radius_matches) >= 6:
+        add_finding(
+            findings,
+            rule="large-radius-density-review",
+            severity="low",
+            path=path,
+            root=root,
+            text=text,
+            offset=large_radius_matches[0].start(),
+            message=(
+                f"{len(large_radius_matches)} large circular radii in one file; verify the shape grammar "
+                "and avoid making unrelated surfaces look like the same generic card."
+            ),
         )
 
     return findings

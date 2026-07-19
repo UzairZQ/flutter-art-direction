@@ -25,3 +25,15 @@ Run these prompts with a fresh agent that can read the skill but has not seen th
 ## 6. Quiet Utility
 
 `Use $flutter-art-direction to design a medication reminder confirmation sheet. It must feel protective and precise. Demonstrate that high non-genericity does not require high motion or decorative richness.`
+
+## 7. Multi-Screen Image Concept
+
+`Use $flutter-art-direction to generate three standalone mobile UI images for a pharmaceutical field-sales app: Today route, visit report, and People. Use one coherent cross-platform design system and premium phone framing. Keep text readable, avoid fabricated performance data and patient information, and make the screens varied but logically connected.`
+
+## 8. Concept Then Build
+
+`Use $flutter-art-direction to explore two image directions for a Flutter museum field-guide home, select transferable decisions, and implement the chosen direction. Do not trace generated device chrome or malformed text. Verify the Flutter result on a small phone, large text, and reduced motion.`
+
+## 9. Android-Native Operational Flow
+
+`Use $flutter-art-direction to design a four-screen Android-native warehouse workflow: task list, scan state, exception sheet, and completion. Keep one visual identity, vary screen rhythm, preserve predictive back and safe areas, and avoid shrinking text to fit operational density.`
